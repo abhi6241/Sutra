@@ -1,0 +1,15 @@
+{
+  "buildCommand": "cd ../.. && npm install --prefix apps/web && npm run build --prefix apps/web",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "echo 'handled in buildCommand'",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/chat", "destination": "/api" },
+    { "source": "/approve", "destination": "/api" },
+    { "source": "/health", "destination": "/api" },
+    { "source": "/inbox/:path*", "destination": "/api" },
+    { "source": "/calendar/:path*", "destination": "/api" },
+    { "source": "/admin/:path*", "destination": "/api" },
+    { "source": "/stream/:path*", "destination": "/api" }
+  ]
+}

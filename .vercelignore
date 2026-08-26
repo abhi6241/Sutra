@@ -1,0 +1,18 @@
+# Vercel — only the frontend is deployed
+node_modules/
+apps/api/
+packages/
+scripts/
+tests/
+data/
+fixtures/
+docs/
+*.py
+*.md
+!apps/web/README.md
+.pytest_cache/
+__pycache__/
+venv/
+.venv/
+chroma_db/
+*.db
