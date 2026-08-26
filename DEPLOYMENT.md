@@ -2,9 +2,34 @@
 
 Deployment documentation for the Sūtra Smart Campus system.
 
-## Current State
+## Deployment Options
 
-**No deployment infrastructure exists.** The repository contains no Dockerfile, docker-compose, CI/CD pipeline, production configuration, or deployment scripts. The system is designed for local development and hackathon demo purposes.
+| Option | Frontend | Backend | Guide |
+|--------|----------|---------|-------|
+| Local development | Vite dev server (port 5173) | Uvicorn (port 8000) | [RUN.md](RUN.md) |
+| Docker | Nginx container (port 80) | Python container (port 8000) | [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml) |
+| Vercel + Render | Vercel static hosting | Render Web Service | [VERCEL.md](VERCEL.md), [RENDER.md](RENDER.md) |
+| Vercel + Railway | Vercel static hosting | Railway service | [VERCEL.md](VERCEL.md) |
+
+## Vercel (Frontend)
+
+Frontend-only deployment to Vercel. Backend runs separately.
+
+```bash
+vercel --prod
+```
+
+Requires a separately deployed backend. See [VERCEL.md](VERCEL.md) for full instructions.
+
+## Docker
+
+```bash
+docker compose up --build
+```
+
+Frontend on port 80, backend on port 8000. See [docker-compose.yml](docker-compose.yml).
+
+## Vercel Configuration Files
 
 ## Build Process
 

@@ -2,12 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+const API_URL = process.env.VITE_API_URL || 'http://localhost:8000'
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    __API_URL__: JSON.stringify(API_URL),
+  },
   server: {
-    // strictPort matters: apps/api/main.py allows ONLY http://localhost:5173.
-    // Without it Vite silently falls back to 5174 when 5173 is busy and every
-    // request dies with an opaque CORS error.
     port: 5173,
     strictPort: true,
     proxy: {
@@ -20,7 +22,6 @@ export default defineConfig({
       '/stream': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        // SSE must not be buffered by the dev proxy or events arrive in a clump.
         configure: (proxy) => {
           proxy.on('proxyRes', (proxyRes) => {
             proxyRes.headers['cache-control'] = 'no-cache, no-transform'

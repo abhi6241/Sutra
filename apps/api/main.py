@@ -70,9 +70,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Sūtra — Smart Campus Multi-Agent API", lifespan=lifespan)
+
+_cors_origins = os.environ.get("SUTRA_CORS_ORIGINS", "http://localhost:5173")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[o.strip() for o in _cors_origins.split(",")],
     allow_methods=["*"],
     allow_headers=["*"],
 )

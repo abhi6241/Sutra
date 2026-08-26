@@ -42,6 +42,9 @@ fixtures/*.jsonl
 !fixtures/golden_reject.jsonl
 !fixtures/golden_capabilities.jsonl
 
+# Docker
+docker-compose.override.yml
+
 # Logs and operating-system/editor files
 *.log
 logs/
