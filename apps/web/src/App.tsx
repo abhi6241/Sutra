@@ -25,7 +25,7 @@ const FIXTURES = [
   { file: 'golden_reject.jsonl', label: 'Human rejects' },
 ]
 
-const STUDENT = '1602-23-733-042'
+const STUDENT = '1602-24-735-066'
 const CALENDAR_WRITE_TOOLS = new Set(['register_event', 'add_to_calendar', 'create_reminder'])
 
 export default function App() {

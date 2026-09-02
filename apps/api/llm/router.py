@@ -33,7 +33,7 @@ OLLAMA_CLOUD_MODEL = os.environ.get("OLLAMA_CLOUD_MODEL", "gpt-oss:20b-cloud")
 ANTHROPIC_MODEL = "claude-opus-4-8"
 OPENAI_MODEL = "gpt-4o-mini"
 
-ANANYA_ID = "1602-23-733-042"
+ABHIRAM_ID = "1602-24-735-066"
 
 # Abandon a provider that is merely SLOW, not just one that errors. Measured
 # from this machine: warm Groq answers in ~0.15s, but Gemini took ~180s per
@@ -531,10 +531,10 @@ def _mock_llm(system, messages, json_mode):
 
     if "at most one tool" in system:
         if "Academic Agent" in system:
-            return {"tool": "get_attendance", "args": {"student_id": ANANYA_ID},
+            return {"tool": "get_attendance", "args": {"student_id": ABHIRAM_ID},
                     "reasoning": "Attendance determines whether missing a lab is affordable."}
         if "Placement Agent" in system:
-            return {"tool": "check_placement_eligibility", "args": {"student_id": ANANYA_ID, "company_id": "google"},
+            return {"tool": "check_placement_eligibility", "args": {"student_id": ABHIRAM_ID, "company_id": "google"},
                     "reasoning": "Eligibility is a deterministic rules check against the company's criteria."}
         if "Events Agent" in system:
             # Choose the batch from this step's task, not from the whole
@@ -546,7 +546,7 @@ def _mock_llm(system, messages, json_mode):
                 saturday = "saturday" in _task
                 return {
                     "tool": "register_event",
-                    "args": {"student_id": ANANYA_ID,
+                    "args": {"student_id": ABHIRAM_ID,
                               "event_id": "evt_workshop_sat" if saturday else "evt_workshop_thu"},
                     "reasoning": ("Routing to the Saturday batch, which does not clash with the lab."
                                    if saturday else
@@ -568,13 +568,13 @@ def _mock_llm(system, messages, json_mode):
             _task = user_content.split("Task:", 1)[-1].lower()
             if "remind" in _task:
                 return {"tool": "create_reminder",
-                        "args": {"student_id": ANANYA_ID,
+                        "args": {"student_id": ABHIRAM_ID,
                                   "message": "Placement Prep Workshop starts in an hour.",
                                   "remind_at": "2026-08-15 09:00"},
                         "reasoning": "The student asked to be reminded an hour before."}
             saturday = "saturday" in _task
             return {"tool": "add_to_calendar",
-                    "args": {"student_id": ANANYA_ID, "title": "Placement Prep Workshop",
+                    "args": {"student_id": ABHIRAM_ID, "title": "Placement Prep Workshop",
                               "date": "2026-08-15" if saturday else "2026-08-13",
                               "start_time": "10:00" if saturday else "14:00",
                               "end_time": "12:00" if saturday else "16:00"},
