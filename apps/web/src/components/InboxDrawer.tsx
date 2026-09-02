@@ -121,5 +121,17 @@ function InboxRow({ item, read, onRead, onAct }: { item: InboxItem; read: boolea
 }
 
 function InboxEmpty({ title, detail }: { title: string; detail: string }) {
-  return <div className="inbox-empty"><Bell size={25} /><strong>{title}</strong><span>{detail}</span></div>
+  return (
+    <div className="inbox-empty">
+      <div style={{
+        width: 48, height: 48, borderRadius: 'var(--r-card)',
+        background: 'var(--surface-sunken)', display: 'grid', placeItems: 'center',
+        border: '1px solid var(--line)', marginBottom: 4,
+      }}>
+        <Bell size={22} style={{ color: 'var(--ink-300)' }} />
+      </div>
+      <strong>{title}</strong>
+      <span>{detail}</span>
+    </div>
+  )
 }

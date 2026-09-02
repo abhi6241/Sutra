@@ -1,11 +1,6 @@
 /**
  * "What it actually did", rendered from the backend's structured ledger.
- *
- * Deliberately NOT parsed out of the answer prose. The prose is written by a
- * language model and has, historically, claimed a registration succeeded on a
- * run where the human rejected it. These rows come from `run.finished.actions`,
- * which the approval gate writes as it resolves each action — so a row saying
- * DONE means a tool returned a receipt, and NOT DONE means nothing was written.
+ * Redesigned with better visual hierarchy and status indicators.
  */
 import type { ActionOutcome, ActionRecord } from '../state/runReducer'
 
@@ -17,14 +12,6 @@ const STYLE: Record<ActionOutcome, { label: string; color: string; bg: string; g
   skipped:      { label: 'Skipped',   color: 'var(--ink-400)',  bg: 'var(--surface-sunken)', glyph: '·' },
 }
 
-/**
- * Say why, in English.
- *
- * The backend's `error` field is written for a log, not a reader — a cancelled
- * step arrives as `depends on ['s2']`, which is a Python list repr leaking
- * onto a projector. Translate the shapes we know and pass anything else
- * through unchanged rather than swallowing it.
- */
 function reason(a: ActionRecord): string {
   if (a.outcome === 'not_executed') {
     return a.error?.includes('already declined')
@@ -47,12 +34,12 @@ export function ActionLedger({ actions }: { actions: ActionRecord[] }) {
     <section
       aria-label="Actions taken"
       style={{
-        marginTop: 14, border: '1px solid var(--line)', borderRadius: 'var(--r-card)',
-        overflow: 'hidden', background: 'var(--surface)',
+        marginTop: 16, border: '1px solid var(--line)', borderRadius: 'var(--r-card)',
+        overflow: 'hidden', background: 'var(--surface)', boxShadow: 'var(--e1)',
       }}
     >
       <header style={{
-        display: 'flex', alignItems: 'baseline', gap: 8, padding: '8px 12px',
+        display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px',
         background: 'var(--surface-sunken)', borderBottom: '1px solid var(--line)',
       }}>
         <span className="eyebrow">Actions taken</span>
@@ -70,27 +57,28 @@ export function ActionLedger({ actions }: { actions: ActionRecord[] }) {
             <li
               key={a.approvalId ?? `${a.stepId}-${i}`}
               style={{
-                display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 10,
-                padding: '10px 12px',
+                display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12,
+                padding: '12px 14px',
                 borderTop: i === 0 ? 'none' : '1px solid var(--line)',
               }}
             >
               <span
                 aria-hidden
                 style={{
-                  width: 20, height: 20, borderRadius: 'var(--r-pill)',
+                  width: 24, height: 24, borderRadius: 'var(--r-pill)',
                   background: st.bg, color: st.color,
                   display: 'grid', placeItems: 'center',
-                  fontSize: 11, fontWeight: 700, marginTop: 1,
+                  fontSize: 12, fontWeight: 700, marginTop: 1,
+                  border: `1px solid color-mix(in srgb, ${st.color} 20%, transparent)`,
                 }}
               >
                 {st.glyph}
               </span>
 
               <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{
-                    fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em',
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
                     textTransform: 'uppercase', color: st.color,
                   }}>
                     {st.label}
@@ -100,17 +88,17 @@ export function ActionLedger({ actions }: { actions: ActionRecord[] }) {
                   )}
                 </div>
 
-                <div style={{ fontSize: 12.5, lineHeight: '18px', color: 'var(--ink-900)', marginTop: 2 }}>
+                <div style={{ fontSize: 13, lineHeight: '19px', color: 'var(--ink-900)', marginTop: 3 }}>
                   {a.description}
                 </div>
 
                 {a.receiptId && (
-                  <div className="mono" style={{ fontSize: 11, color: 'var(--ink-400)', marginTop: 4 }}>
+                  <div className="mono" style={{ fontSize: 11, color: 'var(--ink-400)', marginTop: 5 }}>
                     receipt {a.receiptId}
                   </div>
                 )}
                 {(a.error || a.outcome === 'not_executed') && !a.receiptId && (
-                  <div style={{ fontSize: 11.5, color: 'var(--ink-400)', marginTop: 3 }}>
+                  <div style={{ fontSize: 12, color: 'var(--ink-400)', marginTop: 4 }}>
                     {reason(a)}
                   </div>
                 )}

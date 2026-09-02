@@ -1,11 +1,8 @@
 /**
  * Click a node, see everything behind it.
- *
- * The DAG is a summary; a judge who doubts it needs the receipts. This panel
- * exists so "what did that agent actually call, with what arguments, and what
- * came back" is one click away rather than a claim. It answers the question
- * a sceptical reviewer asks first: is there really a tool under this box?
+ * Redesigned with better visual hierarchy and polished styling.
  */
+import { X } from 'lucide-react'
 import { useStore } from '../state/store'
 import type { StepState, ToolCall } from '../state/runReducer'
 
@@ -39,42 +36,42 @@ export function NodeInspector() {
       aria-label={`Step ${step.id} detail`}
       className="inspector"
       style={{
-        position: 'absolute', top: 0, right: 0, bottom: 0, width: 400, maxWidth: '92%',
+        position: 'absolute', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '92%',
         background: 'var(--surface)', borderLeft: '1px solid var(--line)',
-        boxShadow: 'var(--e2)', display: 'flex', flexDirection: 'column', zIndex: 20,
+        boxShadow: 'var(--e3)', display: 'flex', flexDirection: 'column', zIndex: 20,
       }}
     >
       <header style={{
-        padding: '13px 16px', borderBottom: '1px solid var(--line)',
-        display: 'flex', alignItems: 'flex-start', gap: 10,
+        padding: '16px 18px', borderBottom: '1px solid var(--line)',
+        display: 'flex', alignItems: 'flex-start', gap: 12,
+        background: 'var(--surface-sunken)',
       }}>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
             <span className="mono" style={{ fontSize: 11, color: 'var(--ink-400)' }}>{step.id}</span>
             <span className="eyebrow" style={{ color: `var(--agent-${step.agent})` }}>{step.agent}</span>
             <Pill color={st.color} bg={st.bg}>{st.label}</Pill>
           </div>
-          <div style={{ fontSize: 14, lineHeight: '20px', color: 'var(--ink-900)' }}>{step.task}</div>
+          <div style={{ fontSize: 15, lineHeight: '21px', color: 'var(--ink-900)', fontWeight: 600 }}>{step.task}</div>
         </div>
-        <button onClick={close} aria-label="Close"
-          style={{
-            border: 'none', background: 'transparent', cursor: 'pointer',
-            color: 'var(--ink-400)', fontSize: 18, lineHeight: 1, padding: 2,
-          }}>×</button>
+        <button onClick={close} aria-label="Close" className="icon-button" style={{ flexShrink: 0 }}>
+          <X size={16} />
+        </button>
       </header>
 
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 16 }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 18 }}>
         <Facts step={step} run={run} />
 
         {conflicts.length > 0 && (
           <Section title="Why it was challenged">
             {conflicts.map((c, i) => (
               <div key={i} style={{
-                padding: 10, borderRadius: 'var(--r-chip)', background: 'var(--danger-bg)',
-                color: 'var(--danger)', fontSize: 12, lineHeight: '18px', marginBottom: 6,
+                padding: 12, borderRadius: 'var(--r-chip)', background: 'var(--danger-bg)',
+                color: 'var(--danger)', fontSize: 12, lineHeight: '18px', marginBottom: 8,
+                border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)',
               }}>
                 <strong>{c.type}</strong>
-                <div style={{ marginTop: 3, color: 'var(--ink-600)' }}>{c.detail}</div>
+                <div style={{ marginTop: 4, color: 'var(--ink-600)' }}>{c.detail}</div>
               </div>
             ))}
           </Section>
@@ -94,8 +91,9 @@ export function NodeInspector() {
           <Section title="Errors">
             {step.errors.map((err, i) => (
               <div key={i} className="mono" style={{
-                fontSize: 11.5, color: 'var(--danger)', background: 'var(--danger-bg)',
-                padding: 8, borderRadius: 'var(--r-chip)', marginBottom: 6, whiteSpace: 'pre-wrap',
+                fontSize: 11, color: 'var(--danger)', background: 'var(--danger-bg)',
+                padding: 10, borderRadius: 'var(--r-chip)', marginBottom: 8, whiteSpace: 'pre-wrap',
+                border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)',
               }}>{err}</div>
             ))}
           </Section>
@@ -119,8 +117,9 @@ function Facts({ step, run }: { step: StepState; run: ReturnType<typeof useStore
               className="mono"
               style={{
                 border: '1px solid var(--line)', background: 'var(--surface-sunken)',
-                borderRadius: 'var(--r-input)', padding: '1px 6px', marginRight: 4,
+                borderRadius: 'var(--r-input)', padding: '2px 7px', marginRight: 4,
                 fontSize: 11, cursor: 'pointer', color: 'var(--ink-600)',
+                transition: 'all var(--t-micro)',
               }}>{d}</button>
           ))
         : 'nothing — it started immediately',
@@ -129,7 +128,7 @@ function Facts({ step, run }: { step: StepState; run: ReturnType<typeof useStore
   if (step.ragChunks != null) rows.push(['Clauses retrieved', String(step.ragChunks)])
 
   return (
-    <dl style={{ margin: '0 0 18px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '7px 12px' }}>
+    <dl style={{ margin: '0 0 20px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 14px' }}>
       {rows.map(([k, v]) => (
         <div key={k} style={{ display: 'contents' }}>
           <dt style={{ fontSize: 11.5, color: 'var(--ink-400)', whiteSpace: 'nowrap' }}>{k}</dt>
@@ -152,24 +151,24 @@ function ToolBlock({ call }: { call: ToolCall }) {
   return (
     <div style={{
       border: '1px solid var(--line)', borderLeft: `3px solid ${tone}`,
-      borderRadius: 'var(--r-chip)', marginBottom: 10, overflow: 'hidden',
+      borderRadius: 'var(--r-chip)', marginBottom: 12, overflow: 'hidden',
     }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px',
+        display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
         background: 'var(--surface-sunken)',
       }}>
         <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-900)' }}>
           {call.tool}
         </span>
         <span style={{
-          marginLeft: 'auto', fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em',
+          marginLeft: 'auto', fontSize: 10, fontWeight: 700, letterSpacing: '0.05em',
           textTransform: 'uppercase', color: tone,
         }}>
           {call.status.replace('_', ' ')}
         </span>
       </div>
 
-      <div style={{ padding: 10 }}>
+      <div style={{ padding: 12 }}>
         <Label>Arguments</Label>
         <Code>{JSON.stringify(call.args, null, 2)}</Code>
 
@@ -194,7 +193,7 @@ function ToolBlock({ call }: { call: ToolCall }) {
         )}
 
         {call.status === 'pending_approval' && (
-          <div style={{ fontSize: 11.5, color: 'var(--approval)', marginTop: 8 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--approval)', marginTop: 10, fontStyle: 'italic' }}>
             Staged, not executed. No write happened at this point — the receipt only
             appears after a human approves.
           </div>
@@ -220,8 +219,8 @@ function ToolBlock({ call }: { call: ToolCall }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: 18 }}>
-      <div className="eyebrow" style={{ marginBottom: 8 }}>{title}</div>
+    <section style={{ marginBottom: 20 }}>
+      <div className="eyebrow" style={{ marginBottom: 10 }}>{title}</div>
       {children}
     </section>
   )
@@ -231,7 +230,7 @@ function Label({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
-      color: 'var(--ink-300)', margin: '8px 0 4px',
+      color: 'var(--ink-300)', margin: '10px 0 5px',
     }}>{children}</div>
   )
 }
@@ -239,9 +238,10 @@ function Label({ children }: { children: React.ReactNode }) {
 function Code({ children }: { children: React.ReactNode }) {
   return (
     <pre className="mono" style={{
-      margin: 0, padding: 8, fontSize: 11, lineHeight: '16px',
+      margin: 0, padding: 10, fontSize: 11, lineHeight: '16px',
       background: 'var(--surface-sunken)', borderRadius: 'var(--r-input)',
       color: 'var(--ink-600)', overflowX: 'auto', maxHeight: 220, overflowY: 'auto',
+      border: '1px solid var(--line)',
     }}>{children}</pre>
   )
 }
@@ -250,7 +250,7 @@ function Pill({ children, color, bg }: { children: React.ReactNode; color: strin
   return (
     <span style={{
       fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-      color, background: bg, padding: '2px 7px', borderRadius: 'var(--r-pill)',
+      color, background: bg, padding: '3px 8px', borderRadius: 'var(--r-pill)',
     }}>{children}</span>
   )
 }

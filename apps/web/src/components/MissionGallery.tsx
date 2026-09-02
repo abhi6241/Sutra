@@ -1,18 +1,8 @@
 /**
  * What Sūtra can actually do.
  *
- * The app opened on an empty canvas and three suggestions that were all the
- * same scenario, so the honest impression was "this registers you for a Google
- * internship". Behind that door are 24 tools across five agents, and none of
- * it was visible until you happened to ask the right question.
- *
- * This lives in the centre pane — the largest dead space in the app, and the
- * first place the eye lands — and is replaced by the run itself the moment
- * anything starts. So the emptiest screen becomes the most informative one.
- *
- * DISCIPLINE: every prompt here maps to a tool that exists in TOOL_REGISTRY.
- * A gallery that advertises something the backend cannot serve is a demo that
- * breaks the moment a judge clicks the interesting-looking card.
+ * Redesigned with a polished gradient hero, better card styling, and improved
+ * visual hierarchy while preserving all existing functionality.
  */
 import {
   ArrowRight, BookOpenCheck, BriefcaseBusiness, Building2,
@@ -25,9 +15,7 @@ import { useStore } from '../state/store'
 interface Mission {
   label: string
   prompt: string
-  /** The tools this actually exercises — shown so the claim is checkable. */
   tools: string
-  /** Marks the two runs that show several agents cooperating. */
   flagship?: boolean
 }
 
@@ -125,23 +113,33 @@ export function MissionGallery() {
   }
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', padding: '24px 26px 34px' }}>
-      <header className="mission-hero" style={{
-        marginBottom: 22, padding: '22px 22px 18px', border: '1px solid var(--line)',
-        borderRadius: 'var(--r-card)', background: 'var(--surface)', boxShadow: 'var(--e1)',
+    <div style={{ height: '100%', overflowY: 'auto', padding: '24px 28px 40px' }}>
+      {/* Hero section with gradient background */}
+      <header style={{
+        marginBottom: 28, padding: '28px 28px 22px',
+        border: '1px solid var(--line)',
+        borderRadius: 'var(--r-card)', background: 'var(--gradient-hero)',
+        boxShadow: 'var(--e1)', position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {/* Decorative corner element */}
+        <div style={{
+          position: 'absolute', top: -30, right: -30, width: 120, height: 120,
+          borderRadius: '50%', background: 'var(--accent)', opacity: 0.06,
+        }} />
+
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
           <div style={{ flex: '1 1 380px', minWidth: 0 }}>
-            <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 6 }}>
+            <div className="eyebrow" style={{ color: 'var(--accent)', marginBottom: 8, fontSize: 11 }}>
               One request · five specialists
             </div>
             <h1 className="font-display" style={{
-              fontSize: 27, lineHeight: '33px', margin: '0 0 8px', maxWidth: 600,
+              fontSize: 28, lineHeight: '35px', margin: '0 0 10px', maxWidth: 600,
+              letterSpacing: '-0.02em',
             }}>
               Start with a goal. Sūtra assembles the campus around it.
             </h1>
             <p style={{
-              maxWidth: 630, fontSize: 13.5, lineHeight: '20px',
+              maxWidth: 630, fontSize: 14, lineHeight: '22px',
               color: 'var(--ink-600)', margin: 0,
             }}>
               Ask naturally. The orchestrator selects the right agents, checks their work
@@ -157,9 +155,11 @@ export function MissionGallery() {
           </div>
         </div>
 
+        {/* How it works steps */}
         <div aria-label="How a Sūtra mission works" style={{
           display: 'grid', gridTemplateColumns: 'repeat(4, minmax(110px, 1fr))',
-          marginTop: 18, borderTop: '1px solid var(--line)', paddingTop: 14,
+          marginTop: 20, borderTop: '1px solid color-mix(in srgb, var(--accent) 15%, var(--line))',
+          paddingTop: 16,
         }}>
           {[
             ['01', 'Ask a goal'],
@@ -168,12 +168,14 @@ export function MissionGallery() {
             ['04', 'Approve & receive proof'],
           ].map(([number, label], index) => (
             <div key={number} style={{
-              minWidth: 0, padding: '0 12px',
-              borderLeft: index ? '1px solid var(--line)' : 'none',
+              minWidth: 0, padding: '0 14px',
+              borderLeft: index ? '1px solid color-mix(in srgb, var(--accent) 15%, var(--line))' : 'none',
             }}>
-              <span className="mono" style={{ fontSize: 9.5, color: 'var(--accent)' }}>{number}</span>
+              <span className="mono" style={{
+                fontSize: 10, color: 'var(--accent)', fontWeight: 700,
+              }}>{number}</span>
               <span style={{
-                display: 'block', marginTop: 2, fontSize: 11.5, lineHeight: '15px',
+                display: 'block', marginTop: 3, fontSize: 12, lineHeight: '16px',
                 fontWeight: 650, color: 'var(--ink-900)',
               }}>{label}</span>
             </div>
@@ -181,13 +183,14 @@ export function MissionGallery() {
         </div>
       </header>
 
+      {/* Section header */}
       <div style={{
         display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-        gap: 16, margin: '0 2px 10px',
+        gap: 16, margin: '0 2px 14px',
       }}>
         <div>
-          <div className="eyebrow">What can Sūtra do?</div>
-          <div style={{ fontSize: 12, color: 'var(--ink-400)', marginTop: 2 }}>
+          <div className="eyebrow" style={{ color: 'var(--ink-600)' }}>What can Sūtra do?</div>
+          <div style={{ fontSize: 12, color: 'var(--ink-400)', marginTop: 3 }}>
             Choose a mission to place it in the composer, then edit it however you like.
           </div>
         </div>
@@ -196,9 +199,10 @@ export function MissionGallery() {
         </span>
       </div>
 
+      {/* Agent cards grid */}
       <div style={{
         display: 'grid', gap: 16,
-        gridTemplateColumns: 'repeat(auto-fit, minmax(268px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
       }}>
         {GROUPS.map((group) => {
           const Icon = group.icon
@@ -207,33 +211,36 @@ export function MissionGallery() {
             border: '1px solid var(--line)', borderRadius: 'var(--r-card)',
             background: 'var(--surface)', overflow: 'hidden', boxShadow: 'var(--e1)',
           }}>
+            {/* Card header with agent identity */}
             <div style={{
-              padding: '11px 13px 10px', display: 'flex', gap: 10, alignItems: 'center',
+              padding: '14px 16px 12px', display: 'flex', gap: 12, alignItems: 'center',
               borderBottom: '1px solid var(--line)',
               borderLeft: `3px solid var(--agent-${group.agent})`,
+              background: `color-mix(in srgb, var(--agent-${group.agent}) 4%, var(--surface))`,
             }}>
               <span aria-hidden style={{
-                width: 30, height: 30, flex: '0 0 auto', display: 'grid', placeItems: 'center',
+                width: 34, height: 34, flex: '0 0 auto', display: 'grid', placeItems: 'center',
                 borderRadius: 'var(--r-chip)', color: `var(--agent-${group.agent})`,
-                background: 'var(--surface-sunken)',
+                background: `color-mix(in srgb, var(--agent-${group.agent}) 10%, transparent)`,
               }}>
-                <Icon size={16} strokeWidth={1.8} />
+                <Icon size={17} strokeWidth={1.8} />
               </span>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                   <span style={{
-                    fontSize: 13.5, fontWeight: 700, color: 'var(--ink-900)',
+                    fontSize: 14, fontWeight: 700, color: 'var(--ink-900)',
                   }}>{group.title}</span>
                   <span className="eyebrow" style={{
                     fontSize: 9, color: `var(--agent-${group.agent})`,
                   }}>{group.agent}</span>
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-400)', marginTop: 1 }}>
+                <div style={{ fontSize: 12, color: 'var(--ink-400)', marginTop: 1 }}>
                   {group.blurb}
                 </div>
               </div>
             </div>
 
+            {/* Mission list */}
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {group.missions.map((m, i) => (
                 <li key={m.label}>
@@ -245,34 +252,32 @@ export function MissionGallery() {
                       width: '100%', textAlign: 'left', cursor: 'pointer',
                       border: 'none', background: 'transparent',
                       borderTop: i === 0 ? 'none' : '1px solid var(--line)',
-                      padding: '9px 13px', fontFamily: 'var(--font-body)',
+                      padding: '12px 16px', fontFamily: 'var(--font-body)',
                       display: 'block',
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-900)' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-900)' }}>
                         {m.label}
                       </span>
                       {m.flagship && (
                         <span style={{
                           fontSize: 9, fontWeight: 700, letterSpacing: '0.05em',
                           textTransform: 'uppercase', color: 'var(--accent)',
-                          background: 'var(--accent-weak)', padding: '1px 5px',
+                          background: 'var(--accent-weak)', padding: '2px 6px',
                           borderRadius: 'var(--r-pill)',
                         }}>multi-agent</span>
                       )}
                     </span>
                     <span style={{
-                      display: 'block', fontSize: 11.5, lineHeight: '16px',
-                      color: 'var(--ink-600)', marginTop: 3,
+                      display: 'block', fontSize: 12, lineHeight: '17px',
+                      color: 'var(--ink-600)', marginTop: 4,
                     }}>
                       {m.prompt.length > 96 ? `${m.prompt.slice(0, 96)}…` : m.prompt}
                     </span>
-                    {/* Naming the tools keeps the gallery a claim you can check
-                        against the code, not marketing copy. */}
                     <span className="mono" style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      gap: 8, fontSize: 9.5, color: 'var(--ink-300)', marginTop: 5,
+                      gap: 8, fontSize: 10, color: 'var(--ink-300)', marginTop: 6,
                     }}>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {m.tools}
@@ -297,14 +302,22 @@ function Promise({ icon: Icon, title, detail }: {
 }) {
   return (
     <div style={{
-      display: 'flex', gap: 8, alignItems: 'center', padding: '8px 9px',
-      border: '1px solid var(--line)', borderRadius: 'var(--r-chip)',
-      background: 'var(--surface-sunken)',
+      display: 'flex', gap: 10, alignItems: 'center', padding: '10px 12px',
+      border: '1px solid color-mix(in srgb, var(--accent) 20%, var(--line))',
+      borderRadius: 'var(--r-chip)',
+      background: 'var(--surface-overlay)',
+      backdropFilter: 'blur(8px)',
     }}>
-      <Icon size={16} aria-hidden style={{ color: 'var(--accent)', flex: '0 0 auto' }} />
+      <span style={{
+        width: 28, height: 28, flexShrink: 0, display: 'grid', placeItems: 'center',
+        borderRadius: 'var(--r-chip)', color: 'var(--accent)',
+        background: 'var(--accent-weak)',
+      }}>
+        <Icon size={14} aria-hidden />
+      </span>
       <span style={{ minWidth: 0 }}>
-        <strong style={{ display: 'block', fontSize: 11.5, lineHeight: '14px' }}>{title}</strong>
-        <span style={{ display: 'block', fontSize: 10.5, lineHeight: '14px', color: 'var(--ink-400)' }}>{detail}</span>
+        <strong style={{ display: 'block', fontSize: 12, lineHeight: '15px' }}>{title}</strong>
+        <span style={{ display: 'block', fontSize: 11, lineHeight: '14px', color: 'var(--ink-400)' }}>{detail}</span>
       </span>
     </div>
   )
