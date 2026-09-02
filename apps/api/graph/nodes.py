@@ -344,7 +344,7 @@ def _deterministic_read_plan(state: dict) -> Plan | None:
         spec = ("events", "recommend_clubs", "Recommend campus clubs matching the student's interest.",
                 {"student_id": student_id, "interest": interest})
     elif any(word in lower for word in ("workshop", "event")) and not any(
-        word in lower for word in ("register", "book", "enrol", "enroll")
+        word in lower for word in ("register", "book", "enrol", "enroll", "calendar", "add", "create", "remind")
     ):
         query = "AI" if " ai " in f" {lower} " or "artificial intelligence" in lower else ""
         spec = ("events", "search_events", "Search upcoming campus events.", {"query": query})

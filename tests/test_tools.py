@@ -232,3 +232,16 @@ def test_event_search_ignores_filler_and_unknown_categories():
     assert len(search_events("any workshops this week").events) > 0
     # A genuinely unmatched query must still return nothing.
     assert search_events("quantum blockchain").events == []
+
+
+def test_deterministic_read_plan_skips_calendar_add_requests():
+    """'Add an event to my calendar' must NOT be caught by the search_events
+    deterministic plan. It should fall through to the LLM planner which
+    can create a proper add_to_calendar step."""
+    from apps.api.graph.nodes import _deterministic_read_plan
+
+    state = {"goal": "Add an event to my calendar", "student_id": ABHIRAM}
+    plan = _deterministic_read_plan(state)
+    assert plan is None, (
+        "Calendar-add requests should not produce a deterministic search_events plan"
+    )
