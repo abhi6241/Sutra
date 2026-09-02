@@ -88,36 +88,16 @@ COURSES = [
 ]
 
 # V. Abhiram's timetable — ECE 5th Sem, Section B, Batch B1
-# Labs: IC LAB-B1 (Tue), ADC LAB-B1 (Thu), MPMC LAB (Fri)
+# Labs only: IC LAB-B1 (Tue), ADC LAB-B1 (Thu), MPMC LAB (Fri), Mini Project (Thu), ECA-II (Sat)
 ABHIRAM_TIMETABLE = [
-    # Monday
-    ("EC308", "ECE", 5, "Monday", "09:40", "10:40", "lecture"),   # Design Thinking
-    ("EC303", "ECE", 5, "Monday", "10:40", "11:40", "lecture"),   # ADCS
-    ("EC304", "ECE", 5, "Monday", "11:40", "12:40", "lecture"),   # AWP
-    ("EC307", "ECE", 5, "Monday", "14:20", "15:20", "lecture"),   # SDC-VI
     # Tuesday
-    ("EC301", "ECE", 5, "Tuesday", "09:40", "10:40", "lecture"),  # MPMC
     ("EC302L", "ECE", 5, "Tuesday", "10:40", "12:40", "lab"),    # IC LAB-B1
-    # Wednesday
-    ("EC304", "ECE", 5, "Wednesday", "09:40", "10:40", "lecture"),# AWP
-    ("EC301", "ECE", 5, "Wednesday", "10:40", "11:40", "lecture"),# MPMC
-    ("EC302", "ECE", 5, "Wednesday", "11:40", "12:40", "lecture"),# IC Applications
-    ("EC305", "ECE", 5, "Wednesday", "14:20", "15:20", "lecture"),# OE-III
-    ("EC308", "ECE", 5, "Wednesday", "15:20", "16:20", "lecture"),# Design Thinking
     # Thursday
-    ("EC303", "ECE", 5, "Thursday", "09:40", "10:40", "lecture"), # ADCS
     ("EC303L", "ECE", 5, "Thursday", "10:40", "12:40", "lab"),   # ADC LAB-B1
     ("EC309", "ECE", 5, "Thursday", "14:20", "16:20", "lab"),    # Mini Project-II
     # Friday
-    ("EC303", "ECE", 5, "Friday", "09:40", "10:40", "lecture"),   # ADCS
     ("EC301L", "ECE", 5, "Friday", "10:40", "12:40", "lab"),     # MPMC LAB
-    ("EC307", "ECE", 5, "Friday", "14:20", "15:20", "lecture"),   # SDC-VI
-    ("EC304", "ECE", 5, "Friday", "15:20", "16:20", "lecture"),   # AWP
     # Saturday
-    ("EC301", "ECE", 5, "Saturday", "09:40", "10:40", "lecture"), # MPMC
-    ("EC301", "ECE", 5, "Saturday", "10:40", "11:40", "lecture"), # MPMC
-    ("EC304", "ECE", 5, "Saturday", "11:40", "12:40", "lecture"), # AWP
-    ("EC305", "ECE", 5, "Saturday", "13:20", "14:20", "lecture"), # OE-III
     ("EC310", "ECE", 5, "Saturday", "14:20", "16:20", "lab"),    # ECA-II
 ]
 
