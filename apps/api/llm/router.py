@@ -27,7 +27,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[3] / ".env")
 
 GEMINI_MODEL = "gemini-flash-latest"
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 OLLAMA_LOCAL_MODEL = os.environ.get("OLLAMA_LOCAL_MODEL", "qwen2.5:7b")
 OLLAMA_CLOUD_MODEL = os.environ.get("OLLAMA_CLOUD_MODEL", "gpt-oss:20b-cloud")
 ANTHROPIC_MODEL = "claude-opus-4-8"
@@ -44,7 +44,7 @@ PROVIDER_TIMEOUT_S = float(os.environ.get("LLM_TIMEOUT_S", "25"))
 # whole-call deadline those bounds add up (Groq -> Ollama -> Gemini), so one
 # agent can still sit inside fallback for minutes and prevent node.finished.
 # The async graph always enters call_llm through call_llm_async below.
-LLM_CALL_TIMEOUT_S = float(os.environ.get("LLM_CALL_TIMEOUT_S", "20"))
+LLM_CALL_TIMEOUT_S = float(os.environ.get("LLM_CALL_TIMEOUT_S", "50"))
 
 
 def _force_ipv4() -> None:

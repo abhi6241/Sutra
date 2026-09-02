@@ -495,11 +495,14 @@ async def planner_node(state: dict) -> dict:
             })
             plan = recovered
         else:
+            is_timeout = isinstance(e, TimeoutError)
+            detail = "planner LLM timed out; all providers exhausted" if is_timeout else "planner LLM call failed; ending safely without actions"
             await _emit(run_id, EventType.RUN_ERROR, agent="planner",
-                        payload={"error": str(e), "detail": "planner LLM call failed; ending safely without actions"})
+                        payload={"error": str(e), "detail": detail})
             message = (
-                "I couldn't plan this request because the reasoning service timed out. "
-                "Nothing was changed. Please try again."
+                "I couldn't plan this request because the reasoning service "
+                + ("timed out" if is_timeout else "encountered an error")
+                + ". Nothing was changed. Please try again."
             )
             return {
                 "plan": Plan(goal=goal, reasoning="Planner failed; no actions were dispatched.", steps=[]),
