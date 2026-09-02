@@ -38,25 +38,15 @@ export default function App() {
   const replayRef = useRef<ReplaySource | null>(null)
   const sseRef = useRef<SSEClient | null>(null)
   const chatAbortRef = useRef<AbortController | null>(null)
-  // Every transport callback captures the epoch it belongs to. Starting or
-  // stopping a run advances it, so a late frame from an abandoned request can
-  // never unlock, overwrite or otherwise interfere with the next turn.
   const transportEpochRef = useRef(0)
 
   useEffect(() => {
-    // Precedence: what this user last chose here, then whatever the host page
-    // already stamped on <html> (embedding hosts set data-theme to match the
-    // viewer), then the OS preference. Defaulting straight to 'light' meant a
-    // dark-mode viewer got a white flash and a toggle that appeared stuck.
     const saved = localStorage.getItem('sutra-theme') as 'light' | 'dark' | null
     const stamped = document.documentElement.getAttribute('data-theme') as 'light' | 'dark' | null
     const os = window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     s.setTheme(saved ?? stamped ?? os)
     document.documentElement.lang = useStore.getState().locale
 
-    // An embedding host may flip data-theme at any time (its own theme
-    // toggle). Mirror that into our state so the header button doesn't drift
-    // out of sync with the page it is describing.
     const el = document.documentElement
     const observer = new MutationObserver(() => {
       const now = el.getAttribute('data-theme')
@@ -66,7 +56,6 @@ export default function App() {
     })
     observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] })
     return () => observer.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -93,20 +82,13 @@ export default function App() {
     st.setMode('replay')
     st.setSending(false)
     st.setLiveRunId(null)
-    // Replays are standalone demonstrations. If they replace an in-flight
-    // live turn, do not reuse that abandoned checkpoint on the next question.
     st.setThreadId(null)
     st.resetRun()
     const events = await loadFixture(file)
     st.loadEvents(events)
-    // Playing a run is the explicit request to inspect it. The ordinary app
-    // still opens on the mission gallery; this switches only after the user
-    // presses Play.
     st.setCenterView('score')
     st.setPresentationMode(true)
 
-    // Seed the transcript from the run itself, so replay and live produce the
-    // same shape of conversation rather than two different-looking modes.
     const planned = events.find((e) => e.type === 'plan.created')
     const goal = (planned?.payload as { goal?: string } | undefined)?.goal
     st.addTurn({ role: 'user', text: goal || 'Recorded run', runId: st.run.runId })
@@ -128,7 +110,6 @@ export default function App() {
     src.start()
   }, [stopAll])
 
-  /** The whole point of the composer: any question, live, no hardcoding. */
   const send = useCallback(async (text: string) => {
     stopAll()
     const epoch = transportEpochRef.current
@@ -166,9 +147,6 @@ export default function App() {
               && payload.tool && CALENDAR_WRITE_TOOLS.has(payload.tool)
               && payload.data?.receipt_id
             ) {
-              // The database commit happens before this receipt is emitted.
-              // Refresh now so an open calendar updates as each write lands,
-              // rather than waiting for the rest of the agent run to finish.
               refreshCalendar()
             }
           }
@@ -179,9 +157,6 @@ export default function App() {
             st2.setSending(false)
             refreshCalendar()
           }
-          // A terminal graph error is just as final as run.finished. Benign
-          // per-agent degradation notices include an agent/detail and must not
-          // release the composer while the graph is still working.
           if (e.type === 'run.error' && e.agent == null && e.payload.detail === undefined) {
             const st2 = useStore.getState()
             const pending = st2.turns.filter((t) => t.role === 'assistant' && t.pending).at(-1)
@@ -195,9 +170,6 @@ export default function App() {
           st2.setStatus(status)
           if (status === 'closed' || status === 'error') {
             st2.setSending(false)
-            // A healthy stream closes after run.finished. Anything else would
-            // otherwise leave the newest assistant turn saying "Thinking"
-            // forever even though there is no transport left to finish it.
             if (!st2.run.runComplete && !st2.run.fatalError) {
               const pending = st2.turns.filter((t) => t.role === 'assistant' && t.pending).at(-1)
               if (pending) {
@@ -241,9 +213,6 @@ export default function App() {
     st.setSending(false)
     st.setStatus('idle')
     st.setLiveRunId(null)
-    // The backend has no cancellation endpoint, so any abandoned graph may
-    // finish in the background. A fresh thread prevents that old checkpoint
-    // from racing with the user's next question.
     st.setThreadId(null)
     st.setActiveApproval(null)
   }, [stopAll])
@@ -276,8 +245,6 @@ export default function App() {
   const seekReplay = useCallback((index: number) => {
     const st = useStore.getState()
     if (st.mode !== 'replay') return
-    // Scrubbing is an inspection gesture, so freeze playback at the requested
-    // frame instead of letting the next scheduled event immediately move it.
     replayRef.current?.pause()
     st.seekTo(index)
     replayRef.current?.seek(index)
@@ -374,17 +341,24 @@ export default function App() {
           <NodeInspector />
         </main>
 
-        <aside className="cockpit-rail" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0, background: 'var(--surface)' }}>
-          <div role="tablist" style={{ display: 'flex', borderBottom: '1px solid var(--line)' }}>
+        <aside className="cockpit-rail" style={{
+          display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0,
+          background: 'var(--surface)',
+        }}>
+          <div role="tablist" style={{
+            display: 'flex', borderBottom: '1px solid var(--line)',
+            background: 'var(--surface-sunken)',
+          }}>
             {(['timeline', 'citations', 'memory', 'telemetry'] as const).map((r) => (
               <button key={r} role="tab" aria-selected={s.rail === r} onClick={() => s.setRail(r)}
                 style={{
-                  flex: 1, padding: '11px 6px', border: 'none', cursor: 'pointer',
-                  background: s.rail === r ? 'var(--surface)' : 'var(--surface-sunken)',
+                  flex: 1, padding: '12px 6px', border: 'none', cursor: 'pointer',
+                  background: s.rail === r ? 'var(--surface)' : 'transparent',
                   borderBottom: s.rail === r ? '2px solid var(--accent)' : '2px solid transparent',
                   color: s.rail === r ? 'var(--ink-900)' : 'var(--ink-400)',
-                  fontSize: 11.5, fontWeight: 700, letterSpacing: '0.06em',
+                  fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
                   textTransform: 'uppercase', fontFamily: 'var(--font-body)',
+                  transition: 'all var(--t-micro)',
                 }}>
                 {r}
               </button>
@@ -422,8 +396,8 @@ function CenterToolbar() {
   const setView = useStore((s) => s.setCenterView)
   return (
     <div style={{
-      height: 42, flex: '0 0 42px', display: 'flex', alignItems: 'center', gap: 10,
-      padding: '6px 12px', borderBottom: '1px solid var(--line)', background: 'var(--surface)',
+      height: 44, flex: '0 0 44px', display: 'flex', alignItems: 'center', gap: 10,
+      padding: '6px 14px', borderBottom: '1px solid var(--line)', background: 'var(--surface)',
     }}>
       <span className="eyebrow" style={{ fontSize: 10.5 }}>Run inspection</span>
       <div role="tablist" aria-label="Centre visualization" style={{
@@ -438,11 +412,11 @@ function CenterToolbar() {
             onClick={() => setView(option)}
             style={{
               border: 'none', cursor: 'pointer', borderRadius: 'var(--r-pill)',
-              padding: '4px 12px', background: view === option ? 'var(--surface)' : 'transparent',
+              padding: '5px 14px', background: view === option ? 'var(--surface)' : 'transparent',
               boxShadow: view === option ? 'var(--e1)' : 'none',
               color: view === option ? 'var(--ink-900)' : 'var(--ink-400)',
               fontSize: 11.5, fontWeight: 700, fontFamily: 'var(--font-body)',
-              textTransform: 'capitalize',
+              textTransform: 'capitalize', transition: 'all var(--t-micro)',
             }}
           >
             {option === 'score' ? 'Run score' : 'Plan DAG'}
@@ -478,124 +452,212 @@ function Header({
 
   return (
     <header style={{
-      borderBottom: '2px solid var(--line)', background: 'var(--surface)',
-      padding: '10px 18px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+      borderBottom: '1px solid var(--line)', background: 'var(--surface)',
+      padding: '0 20px', display: 'flex', alignItems: 'center', gap: 0, flexWrap: 'nowrap',
+      height: 56, flexShrink: 0,
     }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-        <span className="font-display" style={{ fontSize: 22 }}>Sūtra</span>
-        <span className="eyebrow">Smart Campus Orchestrator</span>
+      {/* Brand */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, paddingRight: 20, borderRight: '1px solid var(--line)' }}>
+        <span className="font-display" style={{ fontSize: 20, letterSpacing: '-0.03em' }}>Sūtra</span>
+        <span className="eyebrow" style={{ fontSize: 10, opacity: 0.7 }}>Smart Campus</span>
       </div>
 
-      <div style={{ display: 'flex', gap: 2, background: 'var(--surface-sunken)', borderRadius: 'var(--r-pill)', padding: 3 }}>
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: 2, background: 'var(--surface-sunken)', borderRadius: 'var(--r-pill)', padding: 3, marginLeft: 14 }}>
         {(['replay', 'live'] as const).map((m) => (
           <button key={m} onClick={() => s.setMode(m)}
             style={{
-              padding: '5px 14px', borderRadius: 'var(--r-pill)', border: 'none', cursor: 'pointer',
+              padding: '4px 14px', borderRadius: 'var(--r-pill)', border: 'none', cursor: 'pointer',
               background: s.mode === m ? 'var(--surface)' : 'transparent',
               boxShadow: s.mode === m ? 'var(--e1)' : 'none',
-              fontSize: 12.5, fontWeight: 700, color: s.mode === m ? 'var(--ink-900)' : 'var(--ink-400)',
-              fontFamily: 'var(--font-body)', textTransform: 'capitalize',
+              fontSize: 12, fontWeight: 700, color: s.mode === m ? 'var(--ink-900)' : 'var(--ink-400)',
+              fontFamily: 'var(--font-body)', textTransform: 'capitalize', transition: 'all var(--t-micro)',
             }}>{m === 'replay' ? t('replay') : t('live')}</button>
         ))}
       </div>
 
+      {/* Mode-specific controls */}
       {s.mode === 'replay' ? (
-        <>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 14, paddingLeft: 14, borderLeft: '1px solid var(--line)' }}>
           <select value={s.fixture} onChange={(e) => s.setFixture(e.target.value)} style={selectStyle}
             aria-label="Recorded run">
             {FIXTURES.map((f) => <option key={f.file} value={f.file}>{f.label}</option>)}
           </select>
-          <button onClick={onReplay} style={primaryBtn}>
+          <button onClick={onReplay} className="btn-primary" style={{ padding: '5px 14px', fontSize: 12 }}>
             {s.fixture === 'golden_capabilities.jsonl' ? t('playShowcase') : t('playRun')}
           </button>
           <select value={s.speed} onChange={(e) => onSpeedChange(Number(e.target.value))} style={selectStyle}
             aria-label="Replay speed">
             {[0.5, 1, 2, 4].map((v) => <option key={v} value={v}>{v}×</option>)}
           </select>
-        </>
+        </div>
       ) : (
         <span style={{
-          display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5,
+          display: 'flex', alignItems: 'center', gap: 6, fontSize: 12,
+          marginLeft: 14, paddingLeft: 14, borderLeft: '1px solid var(--line)',
           color: s.backendUp ? 'var(--success)' : 'var(--danger)',
         }}>
-          <span style={{ width: 8, height: 8, borderRadius: 999, background: 'currentColor' }} />
+          <span style={{
+            width: 7, height: 7, borderRadius: 999, background: 'currentColor',
+            boxShadow: s.backendUp ? '0 0 6px var(--success)' : '0 0 6px var(--danger)',
+          }} />
           {s.backendUp ? t('backendUp') : t('backendDown')}
         </span>
       )}
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={onCalendar} style={calendarBtn} className="inbox-trigger" aria-label={`Calendar${calendarCount ? `, ${calendarCount} approved commitments` : ''}`}>
-          Calendar
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* Right-side controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {/* Calendar & Inbox */}
+        <button onClick={onCalendar} style={headerActionBtn} className="inbox-trigger"
+          aria-label={`Calendar${calendarCount ? `, ${calendarCount} approved commitments` : ''}`}>
+          <CalendarIcon />
           {calendarCount > 0 && <span className="calendar-header-count">{calendarCount}</span>}
         </button>
-        <button onClick={onInbox} style={ghostBtn} className="inbox-trigger" aria-label={`Inbox${inboxCount ? `, ${inboxCount} alerts` : ''}`}>
-          {t('inbox')}
+        <button onClick={onInbox} style={headerActionBtn} className="inbox-trigger"
+          aria-label={`Inbox${inboxCount ? `, ${inboxCount} alerts` : ''}`}>
+          <InboxIcon />
           {inboxCount > 0 && <span className="inbox-badge">{inboxCount > 9 ? '9+' : inboxCount}</span>}
         </button>
+
+        <div style={{ width: 1, height: 20, background: 'var(--line)', margin: '0 4px' }} />
+
+        {/* New chat */}
         {s.turns.length > 0 && (
-          <button onClick={onNewChat} style={ghostBtn}>
+          <button onClick={onNewChat} style={headerGhostBtn}>
             {t('newChat')}
           </button>
         )}
-        {s.centerView === 'plan' && (
-          <>
-            <span className="eyebrow tnum">{s.progress.index}/{s.progress.total}</span>
-            <span style={{ width: 110, height: 4, background: 'var(--surface-sunken)', borderRadius: 2 }}>
-              <span style={{
-                display: 'block', height: '100%', width: `${pct}%`,
-                background: 'var(--accent)', borderRadius: 2, transition: 'width var(--t-micro)',
-              }} />
-            </span>
-          </>
-        )}
+
+        {/* Inspect toggle */}
         <button
           onClick={() => s.setCenterView(inspecting ? 'missions' : 'score')}
           aria-expanded={inspecting}
-          style={inspecting ? ghostBtn : inspectBtn}
+          style={inspecting ? headerGhostBtn : headerAccentBtn}
         >
           {inspecting ? t('closeInspection') : `${t('inspectRun')}${inspectedEvents ? ` · ${inspectedEvents}` : ''}`}
         </button>
+
+        {/* Progress bar (plan view) */}
+        {s.centerView === 'plan' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px' }}>
+            <span className="eyebrow tnum" style={{ fontSize: 10 }}>{s.progress.index}/{s.progress.total}</span>
+            <span style={{ width: 80, height: 3, background: 'var(--surface-sunken)', borderRadius: 2, overflow: 'hidden' }}>
+              <span style={{
+                display: 'block', height: '100%', width: `${pct}%`,
+                background: 'var(--gradient-accent)', borderRadius: 2, transition: 'width var(--t-micro)',
+              }} />
+            </span>
+          </div>
+        )}
+
+        <div style={{ width: 1, height: 20, background: 'var(--line)', margin: '0 4px' }} />
+
+        {/* Language */}
         <select
           value={s.locale}
           onChange={(event) => s.setLocale(event.target.value as Locale)}
-          style={selectStyle}
+          style={selectCompact}
           aria-label={t('language')}
           title={t('language')}
         >
           {LANGUAGES.map((language) => <option key={language.value} value={language.value}>{language.label}</option>)}
         </select>
-        <button onClick={() => s.setTheme(s.theme === 'light' ? 'dark' : 'light')} style={ghostBtn}>
-          {s.theme === 'light' ? t('dark') : t('light')}
+
+        {/* Theme toggle */}
+        <button onClick={() => s.setTheme(s.theme === 'light' ? 'dark' : 'light')}
+          style={headerIconBtn} title={s.theme === 'light' ? t('dark') : t('light')}>
+          {s.theme === 'light' ? <MoonIcon /> : <SunIcon />}
         </button>
       </div>
     </header>
   )
 }
 
+/* Inline SVG icons for a polished header */
+function CalendarIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="12" height="11" rx="2" />
+      <line x1="2" y1="6.5" x2="14" y2="6.5" />
+      <line x1="5.5" y1="1.5" x2="5.5" y2="4.5" />
+      <line x1="10.5" y1="1.5" x2="10.5" y2="4.5" />
+    </svg>
+  )
+}
+
+function InboxIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 10.5V4a1 1 0 011-1h10a1 1 0 011 1v6.5" />
+      <path d="M1 10.5h14L13 13H3L1 10.5z" />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13.5 8.5a5.5 5.5 0 01-7-7A5.5 5.5 0 1013.5 8.5z" />
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="3" />
+      <line x1="8" y1="1" x2="8" y2="3" />
+      <line x1="8" y1="13" x2="8" y2="15" />
+      <line x1="1" y1="8" x2="3" y2="8" />
+      <line x1="13" y1="8" x2="15" y2="8" />
+      <line x1="3.1" y1="3.1" x2="4.5" y2="4.5" />
+      <line x1="11.5" y1="11.5" x2="12.9" y2="12.9" />
+      <line x1="3.1" y1="12.9" x2="4.5" y2="11.5" />
+      <line x1="11.5" y1="4.5" x2="12.9" y2="3.1" />
+    </svg>
+  )
+}
+
 const selectStyle: React.CSSProperties = {
-  fontSize: 12.5, padding: '6px 10px', borderRadius: 'var(--r-input)',
+  fontSize: 12, padding: '5px 10px', borderRadius: 'var(--r-input)',
   border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink-900)',
-  fontFamily: 'var(--font-body)',
+  fontFamily: 'var(--font-body)', cursor: 'pointer', transition: 'border-color var(--t-micro)',
 }
-const primaryBtn: React.CSSProperties = {
-  fontSize: 12.5, fontWeight: 700, padding: '7px 16px', borderRadius: 'var(--r-input)',
-  border: '1px solid var(--accent)', background: 'var(--accent)', color: 'var(--accent-ink)',
-  cursor: 'pointer', fontFamily: 'var(--font-body)',
+
+const selectCompact: React.CSSProperties = {
+  fontSize: 11, padding: '4px 6px', borderRadius: 'var(--r-input)',
+  border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink-600)',
+  fontFamily: 'var(--font-body)', cursor: 'pointer',
 }
-const ghostBtn: React.CSSProperties = {
-  fontSize: 12.5, fontWeight: 600, padding: '6px 12px', borderRadius: 'var(--r-input)',
-  border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink-600)',
-  cursor: 'pointer', fontFamily: 'var(--font-body)',
+
+const headerActionBtn: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 5, position: 'relative',
+  padding: '5px 10px', borderRadius: 'var(--r-input)',
+  border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink-600)',
+  cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-body)',
+  transition: 'all var(--t-micro)',
 }
-const inspectBtn: React.CSSProperties = {
-  ...ghostBtn,
+
+const headerGhostBtn: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: 5,
+  padding: '5px 12px', borderRadius: 'var(--r-input)',
+  border: '1px solid transparent', background: 'transparent', color: 'var(--ink-400)',
+  cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-body)',
+  transition: 'all var(--t-micro)',
+}
+
+const headerAccentBtn: React.CSSProperties = {
+  ...headerGhostBtn,
   border: '1px solid var(--accent)',
-  background: 'var(--accent-weak)',
-  color: 'var(--accent)',
+  background: 'var(--accent-weak)', color: 'var(--accent)',
 }
-const calendarBtn: React.CSSProperties = {
-  ...ghostBtn,
-  border: '1px solid var(--success)',
-  background: 'var(--success-bg)',
-  color: 'var(--success)',
+
+const headerIconBtn: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  width: 32, height: 32, borderRadius: 'var(--r-input)',
+  border: '1px solid var(--line)', background: 'transparent', color: 'var(--ink-400)',
+  cursor: 'pointer', transition: 'all var(--t-micro)',
 }

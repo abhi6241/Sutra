@@ -162,16 +162,18 @@ export function RunPresentation({
 
 const primaryButton: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 7,
-  minHeight: 38, padding: '8px 14px', borderRadius: 'var(--r-input)',
-  border: '1px solid var(--accent)', background: 'var(--accent)', color: 'var(--accent-ink)',
+  minHeight: 38, padding: '8px 16px', borderRadius: 'var(--r-input)',
+  border: 'none', background: 'var(--gradient-accent)', color: 'var(--accent-ink)',
   fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)',
+  boxShadow: '0 2px 8px rgb(67 56 202 / 0.25)',
 }
 
 const secondaryButton: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 7, cursor: 'pointer',
-  minHeight: 38, padding: '8px 12px', borderRadius: 'var(--r-input)',
+  minHeight: 38, padding: '8px 14px', borderRadius: 'var(--r-input)',
   border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink-600)',
   fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-body)', whiteSpace: 'nowrap',
+  transition: 'all var(--t-micro)',
 }
 
 const iconButton: React.CSSProperties = {
