@@ -1,5 +1,5 @@
 /*
- * Sūtra design tokens — light editorial, enterprise-ready.
+ * Sūtra design tokens — Modern SaaS Instrument aesthetic.
  *
  * Every value is a CSS custom property so dark mode is a single selector
  * override and no component ever branches on theme.
@@ -11,62 +11,71 @@
  */
 
 :root {
-  /* Surfaces */
-  --paper: #fbfaf7;
+  /* Surfaces — richer depth scale */
+  --paper: #f8f7f4;
   --surface: #ffffff;
-  --surface-sunken: #f4f2ed;
+  --surface-sunken: #f0efe9;
   --surface-raised: #ffffff;
+  --surface-overlay: rgba(255, 255, 255, 0.92);
 
-  /* Ink */
-  --ink-900: #16181d;
-  --ink-600: #4a4f57;
-  --ink-400: #767c86;
-  --ink-300: #9aa0a9;
+  /* Ink — warmer neutrals */
+  --ink-900: #111318;
+  --ink-600: #444951;
+  --ink-400: #717782;
+  --ink-300: #9da3ae;
 
   /* Hairlines — warm, not cool grey */
-  --line: #e4e0d8;
-  --line-strong: #cfcabe;
+  --line: #e2ddd4;
+  --line-strong: #ccc6ba;
 
-  /* Accent — institutional indigo, not SaaS purple */
-  --accent: #2f3ab2;
-  --accent-hover: #262f96;
-  --accent-weak: #edeefa;
+  /* Accent — deeper, richer indigo */
+  --accent: #4338ca;
+  --accent-hover: #3730a3;
+  --accent-weak: #eef2ff;
   --accent-ink: #ffffff;
+  --accent-subtle: rgba(67, 56, 202, 0.08);
+
+  /* Gradients — for hero surfaces and decorative elements */
+  --gradient-accent: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+  --gradient-warm: linear-gradient(135deg, #f8f7f4 0%, #f0efe9 100%);
+  --gradient-surface: linear-gradient(180deg, var(--surface) 0%, var(--surface-sunken) 100%);
+  --gradient-hero: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 40%, #f0e7ff 100%);
+  --gradient-hero-dark: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
 
   /* Semantic — dark enough to survive a projector */
-  --running: #1b63c4;      --running-bg: #e7f0fc;
-  --success: #17683f;      --success-bg: #e3f3ea;
-  --degraded: #96590a;     --degraded-bg: #fbeeda;
-  --danger: #a62020;       --danger-bg: #fbe7e7;
-  --approval: #5b3aa6;     --approval-bg: #f0eafb;
-  --denied: #8c2547;       --denied-bg: #fbe9ef;
-  --pending: #9aa0a9;      --pending-bg: #f4f2ed;
+  --running: #2563eb;      --running-bg: #eff6ff;
+  --success: #16a34a;      --success-bg: #f0fdf4;
+  --degraded: #d97706;     --degraded-bg: #fffbeb;
+  --danger: #dc2626;       --danger-bg: #fef2f2;
+  --approval: #7c3aed;     --approval-bg: #f5f3ff;
+  --denied: #be185d;       --denied-bg: #fdf2f8;
+  --pending: #94a3b8;      --pending-bg: #f8fafc;
 
-  /* Agent identity — chips and dots ONLY, never node fills, so they never
-     compete with the semantic status rail. */
-  --agent-academic: #1f5e8c;
-  --agent-placement: #5b3aa6;
-  --agent-events: #0f766e;
-  --agent-knowledge: #8a5b12;
-  --agent-services: #8c2547;
-  --agent-orchestration: #4a4f57;
+  /* Agent identity — chips and dots ONLY, never node fills */
+  --agent-academic: #2563eb;
+  --agent-placement: #7c3aed;
+  --agent-events: #0d9488;
+  --agent-knowledge: #d97706;
+  --agent-services: #be185d;
+  --agent-orchestration: #475569;
 
   /* Type */
   --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-body: -apple-system, 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'Cascadia Code', 'JetBrains Mono', ui-monospace, Consolas, monospace;
 
   /* Spacing — 4px base */
   --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
   --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
 
-  /* Radii — one consistent 10, not a 6/8 mix */
-  --r-card: 10px; --r-chip: 8px; --r-input: 6px; --r-pill: 999px;
+  /* Radii — modern, slightly larger */
+  --r-card: 12px; --r-chip: 8px; --r-input: 8px; --r-pill: 999px;
 
-  /* Elevation — restrained; heavy shadows look cheap projected */
-  --e1: 0 1px 2px rgb(22 24 29 / 0.05), 0 1px 1px rgb(22 24 29 / 0.04);
-  --e2: 0 8px 24px -8px rgb(22 24 29 / 0.14), 0 2px 6px rgb(22 24 29 / 0.06);
-  --e3: 0 24px 64px -16px rgb(22 24 29 / 0.26);
+  /* Elevation — refined shadows */
+  --e1: 0 1px 3px rgb(17 19 24 / 0.04), 0 1px 2px rgb(17 19 24 / 0.03);
+  --e2: 0 4px 16px -4px rgb(17 19 24 / 0.1), 0 2px 6px -2px rgb(17 19 24 / 0.05);
+  --e3: 0 20px 60px -16px rgb(17 19 24 / 0.2), 0 8px 24px -8px rgb(17 19 24 / 0.1);
+  --e-glow: 0 0 0 4px var(--accent-weak), 0 0 0 2px var(--accent);
   --focus: 0 0 0 3px var(--accent-weak), 0 0 0 1.5px var(--accent);
 
   /* Motion */
@@ -77,41 +86,47 @@
 }
 
 :root[data-theme='dark'] {
-  --paper: #12141a;
-  --surface: #191c24;
-  --surface-sunken: #14161d;
-  --surface-raised: #1f232c;
+  --paper: #0f1117;
+  --surface: #161920;
+  --surface-sunken: #111319;
+  --surface-raised: #1c1f28;
+  --surface-overlay: rgba(22, 25, 32, 0.94);
 
-  --ink-900: #edeff3;
-  --ink-600: #b3bac5;
-  --ink-400: #838b98;
-  --ink-300: #646c7a;
+  --ink-900: #f1f3f7;
+  --ink-600: #b0b7c4;
+  --ink-400: #7c8494;
+  --ink-300: #5a6272;
 
-  --line: #2a2f3a;
-  --line-strong: #3a4150;
+  --line: #272b36;
+  --line-strong: #373d4c;
 
-  --accent: #8b93f0;
-  --accent-hover: #a2a9f5;
-  --accent-weak: #23273f;
-  --accent-ink: #12141a;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-weak: #1e1b4b;
+  --accent-ink: #0f1117;
+  --accent-subtle: rgba(129, 140, 248, 0.08);
+
+  --gradient-hero: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #1e1b4b 100%);
 
   /* Lifted ~2 steps so they hold up on a dark surface */
-  --running: #6fa8f5;      --running-bg: #17263c;
-  --success: #57c78d;      --success-bg: #12291d;
-  --degraded: #e0a850;     --degraded-bg: #2e2413;
-  --danger: #ef7a7a;       --danger-bg: #2e1717;
-  --approval: #b295ee;     --approval-bg: #241b38;
-  --denied: #e8859f;       --denied-bg: #2e1620;
-  --pending: #646c7a;      --pending-bg: #1c1f27;
+  --running: #60a5fa;      --running-bg: #172554;
+  --success: #4ade80;      --success-bg: #14532d;
+  --degraded: #fbbf24;     --degraded-bg: #422006;
+  --danger: #f87171;       --danger-bg: #450a0a;
+  --approval: #a78bfa;     --approval-bg: #2e1065;
+  --denied: #f472b6;       --denied-bg: #4a0e2a;
+  --pending: #5a6272;      --pending-bg: #1c1f28;
 
-  --agent-academic: #6fa8f5;
-  --agent-placement: #b295ee;
-  --agent-events: #4fc4b4;
-  --agent-knowledge: #d9a94e;
-  --agent-services: #e8859f;
-  --agent-orchestration: #b3bac5;
+  --agent-academic: #60a5fa;
+  --agent-placement: #a78bfa;
+  --agent-events: #2dd4bf;
+  --agent-knowledge: #fbbf24;
+  --agent-services: #f472b6;
+  --agent-orchestration: #94a3b8;
 
-  --e1: 0 1px 2px rgb(0 0 0 / 0.4);
-  --e2: 0 8px 24px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
-  --e3: 0 24px 64px -16px rgb(0 0 0 / 0.7);
+  --e1: 0 1px 3px rgb(0 0 0 / 0.3);
+  --e2: 0 4px 16px -4px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --e3: 0 20px 60px -16px rgb(0 0 0 / 0.6), 0 8px 24px -8px rgb(0 0 0 / 0.4);
+  --e-glow: 0 0 0 4px var(--accent-weak), 0 0 0 2px var(--accent);
+  --focus: 0 0 0 3px var(--accent-weak), 0 0 0 1.5px var(--accent);
 }
