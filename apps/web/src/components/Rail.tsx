@@ -57,7 +57,7 @@ export function Timeline() {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }) }, [run.timeline.length])
 
   if (!run.timeline.length) {
-    return <Empty label="No events yet" hint="Events stream here as agents work." />
+    return <Empty label="No events yet" hint="Events stream here as agents work." icon="timeline" />
   }
 
   return (
@@ -70,21 +70,27 @@ export function Timeline() {
         return (
           <button key={e.id} onClick={() => e.node_id && selectStep(e.node_id)}
             style={{
-              display: 'grid', gridTemplateColumns: '52px 18px 1fr', gap: 8,
-              width: '100%', textAlign: 'left', padding: '6px 12px',
+              display: 'grid', gridTemplateColumns: '52px 20px 1fr', gap: 6,
+              width: '100%', textAlign: 'left', padding: '7px 14px',
               background: isConflict ? 'var(--danger-bg)' : isApproval ? 'var(--approval-bg)' : 'transparent',
-              border: 'none', borderBottom: '1px solid var(--line)', cursor: e.node_id ? 'pointer' : 'default',
-              fontFamily: 'var(--font-body)',
-            }}>
-            <span className="tnum" style={{ fontSize: 11.5, color: 'var(--ink-400)' }}>
+              border: 'none', borderBottom: '1px solid var(--line)',
+              cursor: e.node_id ? 'pointer' : 'default',
+              fontFamily: 'var(--font-body)', transition: 'background var(--t-micro)',
+            }}
+            onMouseEnter={(ev) => { if (e.node_id) ev.currentTarget.style.background = 'var(--surface-sunken)' }}
+            onMouseLeave={(ev) => {
+              ev.currentTarget.style.background = isConflict ? 'var(--danger-bg)' : isApproval ? 'var(--approval-bg)' : 'transparent'
+            }}
+          >
+            <span className="tnum" style={{ fontSize: 11, color: 'var(--ink-300)' }}>
               +{offset.toFixed(2)}s
             </span>
-            <span style={{ color: ink, fontSize: 13 }}>{GLYPH[e.type] ?? '·'}</span>
+            <span style={{ color: ink, fontSize: 13, textAlign: 'center' }}>{GLYPH[e.type] ?? '·'}</span>
             <span style={{ minWidth: 0 }}>
-              <span className="eyebrow" style={{ color: ink, fontSize: 10.5, marginRight: 6 }}>
+              <span className="eyebrow" style={{ color: ink, fontSize: 10, marginRight: 6 }}>
                 {e.agent ?? 'system'}
               </span>
-              <span style={{ fontSize: 12.5, color: 'var(--ink-900)' }}>{summarize(e)}</span>
+              <span style={{ fontSize: 12, color: 'var(--ink-900)' }}>{summarize(e)}</span>
             </span>
           </button>
         )
@@ -97,20 +103,20 @@ export function Timeline() {
 export function Citations() {
   const citations = useStore((s) => s.run.citations)
   if (!citations.length) {
-    return <Empty label="No citations yet" hint="The Knowledge Agent's retrieved clauses appear here, with document and clause numbers." />
+    return <Empty label="No citations yet" hint="The Knowledge Agent's retrieved clauses appear here, with document and clause numbers." icon="citations" />
   }
   return (
     <div style={{ overflowY: 'auto', height: '100%', padding: 12, display: 'grid', gap: 10 }}>
       {citations.map((c, i) => (
-        <div key={i} className="panel" style={{ padding: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+        <div key={i} className="panel" style={{ padding: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
             <span className="eyebrow" style={{ color: 'var(--accent)' }}>[doc:{i}]</span>
             <span style={{ fontSize: 13, fontWeight: 600 }}>{c.doc_title}</span>
           </div>
-          <div className="mono" style={{ fontSize: 11.5, color: 'var(--ink-400)', marginBottom: 8 }}>
+          <div className="mono" style={{ fontSize: 11, color: 'var(--ink-400)', marginBottom: 10 }}>
             {c.doc_number} · clause {c.clause} · p.{c.page} · score {c.score.toFixed(3)}
           </div>
-          <div style={{ fontSize: 12.5, lineHeight: '18px', color: 'var(--ink-600)' }}>{c.text}</div>
+          <div style={{ fontSize: 12.5, lineHeight: '19px', color: 'var(--ink-600)' }}>{c.text}</div>
         </div>
       ))}
     </div>
@@ -120,21 +126,21 @@ export function Citations() {
 export function Memory() {
   const memory = useStore((s) => s.run.memory)
   const has = memory.facts.length || memory.recalled.length || memory.written.length
-  if (!has) return <Empty label="No memory yet" hint="Durable facts and recalled conversation summaries appear here." />
+  if (!has) return <Empty label="No memory yet" hint="Durable facts and recalled conversation summaries appear here." icon="memory" />
 
   return (
-    <div style={{ overflowY: 'auto', height: '100%', padding: 12, display: 'grid', gap: 14 }}>
+    <div style={{ overflowY: 'auto', height: '100%', padding: 14, display: 'grid', gap: 16 }}>
       {memory.facts.length > 0 && (
         <section>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>Recalled profile facts</div>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Recalled profile facts</div>
           {memory.facts.map((f) => (
-            <div key={f.key} style={{ marginBottom: 8 }}>
+            <div key={f.key} style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                <span className="mono" style={{ fontSize: 11.5, color: 'var(--ink-600)' }}>{f.key}</span>
+                <span className="mono" style={{ fontSize: 11, color: 'var(--ink-600)' }}>{f.key}</span>
                 <span style={{ fontSize: 13 }}>{f.value}</span>
               </div>
-              <div style={{ height: 3, background: 'var(--surface-sunken)', borderRadius: 2, marginTop: 4 }}>
-                <div style={{ height: '100%', width: `${f.confidence * 100}%`, background: 'var(--accent)', borderRadius: 2 }} />
+              <div style={{ height: 3, background: 'var(--surface-sunken)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${f.confidence * 100}%`, background: 'var(--gradient-accent)', borderRadius: 2, transition: 'width var(--t-state)' }} />
               </div>
             </div>
           ))}
@@ -142,10 +148,10 @@ export function Memory() {
       )}
       {memory.recalled.length > 0 && (
         <section>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>From earlier conversations</div>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>From earlier conversations</div>
           {memory.recalled.map((r) => (
-            <div key={r.id} className="panel" style={{ padding: 10, marginBottom: 8 }}>
-              <div style={{ fontSize: 12.5, lineHeight: '18px' }}>{r.summary}</div>
+            <div key={r.id} className="panel" style={{ padding: 12, marginBottom: 8 }}>
+              <div style={{ fontSize: 12.5, lineHeight: '19px' }}>{r.summary}</div>
               <div className="mono" style={{ fontSize: 11, color: 'var(--ink-400)', marginTop: 6 }}>
                 score {r.score.toFixed(2)} · thread {r.thread_id || '—'}
               </div>
@@ -155,12 +161,12 @@ export function Memory() {
       )}
       {memory.written.length > 0 && (
         <section>
-          <div className="eyebrow" style={{ marginBottom: 4 }}>Written this turn</div>
-          <div style={{ fontSize: 11.5, color: 'var(--ink-400)', marginBottom: 8 }}>
+          <div className="eyebrow" style={{ marginBottom: 6 }}>Written this turn</div>
+          <div style={{ fontSize: 11, color: 'var(--ink-400)', marginBottom: 10 }}>
             Recorded after the answer — deliberately off the critical path.
           </div>
           {memory.written.map((w, i) => (
-            <div key={i} style={{ display: 'flex', gap: 8, fontSize: 12.5, marginBottom: 4 }}>
+            <div key={i} style={{ display: 'flex', gap: 8, fontSize: 12.5, marginBottom: 5 }}>
               <span className="mono" style={{ color: 'var(--ink-600)' }}>{w.key}</span>
               <span>{w.value}</span>
             </div>
@@ -195,26 +201,26 @@ export function Telemetry() {
   ]
 
   return (
-    <div style={{ overflowY: 'auto', height: '100%', padding: 12 }}>
+    <div style={{ overflowY: 'auto', height: '100%', padding: 14 }}>
       {rows.map(([k, v]) => (
         <div key={k} style={{
-          display: 'flex', justifyContent: 'space-between', padding: '7px 0',
-          borderBottom: '1px solid var(--line)', fontSize: 13,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '8px 0', borderBottom: '1px solid var(--line)', fontSize: 13,
         }}>
           <span style={{ color: 'var(--ink-600)' }}>{k}</span>
-          <span className="tnum" style={{ fontWeight: 600 }}>{v}</span>
+          <span className="tnum" style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
         </div>
       ))}
       {run.notices.length > 0 && (
-        <div style={{ marginTop: 14 }}>
-          <div className="eyebrow" style={{ marginBottom: 6, color: 'var(--degraded)' }}>
+        <div style={{ marginTop: 16 }}>
+          <div className="eyebrow" style={{ marginBottom: 8, color: 'var(--degraded)' }}>
             Degradation notices ({run.notices.length})
           </div>
           {run.notices.map((n, i) => (
             <div key={i} style={{
-              fontSize: 12, padding: 8, marginBottom: 6,
+              fontSize: 12, padding: 10, marginBottom: 6,
               background: 'var(--degraded-bg)', color: 'var(--degraded)',
-              borderRadius: 'var(--r-chip)',
+              borderRadius: 'var(--r-chip)', border: '1px solid color-mix(in srgb, var(--degraded) 20%, transparent)',
             }}>
               <strong>{n.agent}</strong> — {n.detail}
             </div>
@@ -225,12 +231,19 @@ export function Telemetry() {
   )
 }
 
-function Empty({ label, hint }: { label: string; hint: string }) {
+function Empty({ label, hint, icon }: { label: string; hint: string; icon?: string }) {
   return (
-    <div style={{ display: 'grid', placeItems: 'center', height: '100%', padding: 24, textAlign: 'center' }}>
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-600)', marginBottom: 6 }}>{label}</div>
-        <div style={{ fontSize: 12.5, color: 'var(--ink-400)', maxWidth: 260 }}>{hint}</div>
+    <div style={{ display: 'grid', placeItems: 'center', height: '100%', padding: 28, textAlign: 'center' }}>
+      <div style={{ maxWidth: 240 }}>
+        <div style={{
+          width: 40, height: 40, margin: '0 auto 14px', borderRadius: 'var(--r-card)',
+          background: 'var(--surface-sunken)', display: 'grid', placeItems: 'center',
+          border: '1px solid var(--line)',
+        }}>
+          {icon === 'timeline' ? '⏱' : icon === 'citations' ? '📄' : icon === 'memory' ? '🧠' : '📊'}
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-600)', marginBottom: 6 }}>{label}</div>
+        <div style={{ fontSize: 12, color: 'var(--ink-400)', lineHeight: '18px' }}>{hint}</div>
       </div>
     </div>
   )

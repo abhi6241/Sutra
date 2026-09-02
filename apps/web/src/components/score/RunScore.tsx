@@ -423,10 +423,21 @@ export function RunScore({ onSeek, presentation = false }: {
               top: axisHeight + (presentation ? 110 : 88),
               textAlign: 'center', pointerEvents: 'none',
             }}>
+              <div style={{
+                width: presentation ? 56 : 44, height: presentation ? 56 : 44,
+                margin: '0 auto 16px', borderRadius: 'var(--r-card)',
+                background: 'var(--gradient-hero)', display: 'grid', placeItems: 'center',
+                boxShadow: '0 4px 16px rgb(67 56 202 / 0.1)',
+              }}>
+                <svg width={presentation ? 28 : 22} height={presentation ? 28 : 22} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
               <div className="font-display" style={{
                 fontSize: presentation ? 28 : 20, color: 'var(--ink-600)',
+                letterSpacing: '-0.01em',
               }}>The score is waiting</div>
-              <div style={{ fontSize: presentation ? 16 : 13, color: 'var(--ink-400)', marginTop: 5 }}>
+              <div style={{ fontSize: presentation ? 16 : 13, color: 'var(--ink-400)', marginTop: 6, maxWidth: 400, margin: '6px auto 0' }}>
                 Ask a question or play a recorded run. Overlapping work will appear on these permanent agent lanes.
               </div>
             </div>

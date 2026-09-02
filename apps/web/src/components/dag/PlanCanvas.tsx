@@ -124,13 +124,30 @@ function Canvas() {
     return (
       <div style={{
         height: '100%', display: 'grid', placeItems: 'center',
-        color: 'var(--ink-400)', textAlign: 'center', padding: 32,
+        color: 'var(--ink-400)', textAlign: 'center', padding: 40,
       }}>
-        <div>
-          <div className="font-display" style={{ fontSize: 20, color: 'var(--ink-600)', marginBottom: 8 }}>
+        <div style={{ maxWidth: 360 }}>
+          <div style={{
+            width: 56, height: 56, margin: '0 auto 18px', borderRadius: 'var(--r-card)',
+            background: 'var(--gradient-hero)', display: 'grid', placeItems: 'center',
+            boxShadow: '0 4px 16px rgb(67 56 202 / 0.12)',
+          }}>
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7" cy="7" r="3" />
+              <circle cx="21" cy="7" r="3" />
+              <circle cx="14" cy="21" r="3" />
+              <line x1="10" y1="7" x2="18" y2="7" />
+              <line x1="8.5" y1="9.5" x2="12.5" y2="18.5" />
+              <line x1="19.5" y1="9.5" x2="15.5" y2="18.5" />
+            </svg>
+          </div>
+          <div className="font-display" style={{
+            fontSize: 20, color: 'var(--ink-600)', marginBottom: 8,
+            letterSpacing: '-0.01em',
+          }}>
             No plan yet
           </div>
-          <div style={{ fontSize: 14, maxWidth: 380 }}>
+          <div style={{ fontSize: 13.5, lineHeight: '20px', color: 'var(--ink-400)' }}>
             Ask a question, or press play to replay a recorded run. The orchestrator's plan
             will appear here as a live graph.
           </div>
