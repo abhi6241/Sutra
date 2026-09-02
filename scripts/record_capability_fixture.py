@@ -26,7 +26,7 @@ from sqlalchemy.orm import sessionmaker
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-STUDENT = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 RUN_ID = "recorded-capability-tour"
 OUTPUTS = (
     ROOT / "fixtures" / "golden_capabilities.jsonl",
@@ -86,33 +86,33 @@ async def main() -> None:
     steps = [
         # Academic
         ("s01", "academic", "get_timetable", "Load the student's complete weekly timetable.", [], False,
-         {"student_id": STUDENT}),
+         {"student_id": ABHIRAM}),
         ("s02", "academic", "get_attendance", "Audit attendance across every enrolled course.", [], False,
-         {"student_id": STUDENT}),
+         {"student_id": ABHIRAM}),
         ("s03", "academic", "compute_attendance_eligibility", "Calculate the DBMS Lab attendance recovery path.", ["s02"], False,
-         {"student_id": STUDENT, "course_id": "CS301L"}),
+         {"student_id": ABHIRAM, "course_id": "CS301L"}),
         ("s04", "academic", "check_schedule_conflict", "Check the Thursday workshop against the class timetable.", ["s01"], False,
-         {"student_id": STUDENT, "day_of_week": "Thursday", "start_time": "14:00", "end_time": "16:00"}),
+         {"student_id": ABHIRAM, "day_of_week": "Thursday", "start_time": "14:00", "end_time": "16:00"}),
         ("s05", "academic", "recommend_electives", "Recommend electives related to machine learning.", [], False,
-         {"student_id": STUDENT, "interest": "machine learning"}),
+         {"student_id": ABHIRAM, "interest": "machine learning"}),
         # Placement
         ("s06", "placement", "list_companies", "Find companies currently open to CSE students.", [], False,
          {"branch": "CSE"}),
         ("s07", "placement", "check_placement_eligibility", "Verify Google eligibility criterion by criterion.", [], False,
-         {"student_id": STUDENT, "company_id": "google"}),
+         {"student_id": ABHIRAM, "company_id": "google"}),
         ("s08", "placement", "analyze_resume", "Audit the resume for evidence gaps.", [], False,
-         {"student_id": STUDENT, "resume_text": "CSE student. ML project with GitHub portfolio, internship experience, and coding-club leadership."}),
+         {"student_id": ABHIRAM, "resume_text": "CSE student. ML project with GitHub portfolio, internship experience, and coding-club leadership."}),
         ("s09", "placement", "get_prep_plan", "Build a two-week Google interview preparation plan.", ["s07"], False,
-         {"student_id": STUDENT, "company_id": "google"}),
+         {"student_id": ABHIRAM, "company_id": "google"}),
         # Events
         ("s10", "events", "search_events", "Discover upcoming AI and placement events.", [], False,
          {"query": "AI workshops"}),
         ("s11", "events", "get_event_capacity", "Verify remaining seats in the Saturday placement workshop.", [], False,
          {"event_id": "evt_workshop_sat"}),
         ("s12", "events", "recommend_clubs", "Recommend clubs matching an ML interest.", [], False,
-         {"student_id": STUDENT, "interest": "machine learning"}),
+         {"student_id": ABHIRAM, "interest": "machine learning"}),
         ("s13", "events", "register_event", "Register for the clash-free Saturday placement workshop.", ["s04", "s07", "s11"], True,
-         {"student_id": STUDENT, "event_id": "evt_workshop_sat"}),
+         {"student_id": ABHIRAM, "event_id": "evt_workshop_sat"}),
         # Knowledge
         ("s14", "knowledge", "search_policy", "Retrieve the attendance and condonation regulation.", [], False,
          {"query": "minimum attendance exam eligibility and condonation"}),
@@ -120,11 +120,11 @@ async def main() -> None:
          {}),
         # Services & communications
         ("s16", "services", "get_hostel_info", "Check hostel room and no-dues status.", [], False,
-         {"student_id": STUDENT}),
+         {"student_id": ABHIRAM}),
         ("s17", "services", "library_loans", "Review active library loans and due dates.", [], False,
-         {"student_id": STUDENT}),
+         {"student_id": ABHIRAM}),
         ("s18", "services", "renew_book", "Renew the active database textbook loan.", ["s17"], False,
-         {"student_id": STUDENT, "book_title": "Database System Concepts", "actor": STUDENT}),
+         {"student_id": ABHIRAM, "book_title": "Database System Concepts", "actor": ABHIRAM}),
         ("s19", "services", "draft_email", "Draft a concise attendance-support email.", ["s03", "s14"], False,
          {"to": "advisor.cse@vasavi.ac.in", "subject": "DBMS Lab attendance recovery plan",
           "body": "I am following the calculated recovery plan for DBMS Lab and request guidance on the applicable condonation process."}),
@@ -132,19 +132,19 @@ async def main() -> None:
          {"to": "advisor.cse@vasavi.ac.in", "subject": "DBMS Lab attendance recovery plan",
           "body": "I am following the calculated recovery plan for DBMS Lab and request guidance on the applicable condonation process."}),
         ("s21", "services", "file_grievance", "File a hostel Wi-Fi grievance after approval.", ["s16"], True,
-         {"student_id": STUDENT, "category": "hostel-network",
+         {"student_id": ABHIRAM, "category": "hostel-network",
           "description": "Wi-Fi in B-Block has been unavailable repeatedly during evening study hours."}),
         ("s22", "services", "add_to_calendar", "Add the confirmed Saturday workshop to the calendar.", ["s13"], False,
-         {"student_id": STUDENT, "title": "Placement Prep Workshop (Saturday Batch)",
+         {"student_id": ABHIRAM, "title": "Placement Prep Workshop (Saturday Batch)",
           "date": "2026-08-15", "start_time": "10:00", "end_time": "12:00",
-          "source": "Sūtra capability tour", "actor": STUDENT}),
+          "source": "Sūtra capability tour", "actor": ABHIRAM}),
         ("s23", "services", "create_reminder", "Create a one-hour-before workshop reminder.", ["s22"], False,
-         {"student_id": STUDENT, "message": "Placement Prep Workshop starts in one hour.",
-          "remind_at": "2026-08-15 09:00", "actor": STUDENT}),
+         {"student_id": ABHIRAM, "message": "Placement Prep Workshop starts in one hour.",
+          "remind_at": "2026-08-15 09:00", "actor": ABHIRAM}),
         ("s24", "services", "escalate_to_human", "Create a safe human handoff for the attendance case.", ["s03", "s14"], False,
-         {"student_id": STUDENT,
+         {"student_id": ABHIRAM,
           "summary": "Please review the DBMS Lab recovery plan and advise whether condonation paperwork is needed.",
-          "actor": STUDENT}),
+          "actor": ABHIRAM}),
     ]
 
     step_by_id = {step[0]: step for step in steps}
@@ -170,7 +170,7 @@ async def main() -> None:
             first = cites[0] if cites else {"doc_title": "Academic Regulations", "clause": "4.2"}
             args = {"doc_title": first["doc_title"], "clause": str(first["clause"])}
         if gated:
-            args["actor"] = STUDENT
+            args["actor"] = ABHIRAM
             args["approved"] = approved
 
         if not approved:
@@ -219,7 +219,7 @@ async def main() -> None:
     # not counted among the 24 registry tools.
     clash = jsonable(results["s04"])
     impact = jsonable(await asyncio.to_thread(
-        academic.project_attendance_impact, STUDENT, "CS301L", 1,
+        academic.project_attendance_impact, ABHIRAM, "CS301L", 1,
     ))
     emit(EventType.SCHEDULE_CHECKED, node_id="s13", agent="academic", payload={
         "event_id": "evt_workshop_thu", "event_title": "Placement Prep Workshop",

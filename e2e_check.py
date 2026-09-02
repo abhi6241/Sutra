@@ -24,7 +24,7 @@ from pathlib import Path
 
 BASE = "http://localhost:8000"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 HERO_QUERY = ("I'm a third-year CSE student. Am I eligible for the Google internship? "
               "If yes, register me for the placement workshop, add it to my calendar, "
               "and remind me an hour before.")
@@ -66,7 +66,7 @@ def stream_events(run_id: str, sink: list, stop_after: float):
 
 def run_scenario(label: str, query: str, approve: bool = True) -> tuple[str, list]:
     print(f"\n=== {label} ===")
-    run_id = post("/chat", {"message": query, "student_id": ANANYA, "role": "student"})["run_id"]
+    run_id = post("/chat", {"message": query, "student_id": ABHIRAM, "role": "student"})["run_id"]
     print(f"  run_id={run_id}")
 
     sse: list[str] = []

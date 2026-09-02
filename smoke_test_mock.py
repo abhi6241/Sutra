@@ -24,7 +24,7 @@ from langgraph.types import Command  # noqa: E402
 from apps.api.bus import bus, FIXTURES_DIR  # noqa: E402
 from apps.api.graph.build import graph_session  # noqa: E402
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 
 
 async def main():
@@ -34,7 +34,7 @@ async def main():
 
     async with graph_session() as graph:
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "goal": "eligibility + register test", "iteration": 0},
+            {"run_id": run_id, "student_id": ABHIRAM, "goal": "eligibility + register test", "iteration": 0},
             config=config,
         )
 

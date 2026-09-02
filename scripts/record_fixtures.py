@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT))
 os.environ["MOCK_LLM"] = "1"
 
 FIXTURES = ROOT / "fixtures"
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 HERO = ("I'm a third-year CSE student. Am I eligible for the Google internship? "
         "If yes, register me for the placement workshop, add it to my calendar, "
         "and remind me an hour before.")
@@ -76,7 +76,7 @@ async def record(name: str, *, goal: str, decision: str = "approve", chaos: str 
     async with graph_session() as graph:
         config = {"configurable": {"thread_id": run_id}}
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "role": "student", "goal": goal, "iteration": 0},
+            {"run_id": run_id, "student_id": ABHIRAM, "role": "student", "goal": goal, "iteration": 0},
             config=config,
         )
         hops = 0

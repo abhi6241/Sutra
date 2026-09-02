@@ -11,7 +11,7 @@ from langgraph.types import Command
 
 from apps.api.graph.build import graph_session
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 
 
 async def main():
@@ -23,7 +23,7 @@ async def main():
 
     async with graph_session() as graph:
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "goal": goal, "iteration": 0}, config=config,
+            {"run_id": run_id, "student_id": ABHIRAM, "goal": goal, "iteration": 0}, config=config,
         )
 
         hops = 0
