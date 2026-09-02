@@ -22,7 +22,7 @@ os.environ.pop("MOCK_CONFLICT", None)
 from apps.api.graph.build import graph_session  # noqa: E402
 from apps.api.graph.nodes import route_after_planner  # noqa: E402
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
@@ -36,7 +36,7 @@ async def _ask(goal: str):
     run_id = f"test-conv-{uuid.uuid4().hex[:6]}"
     async with graph_session() as graph:
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "role": "student", "goal": goal, "iteration": 0},
+            {"run_id": run_id, "student_id": ABHIRAM, "role": "student", "goal": goal, "iteration": 0},
             config={"configurable": {"thread_id": run_id}},
         )
     path = FIXTURES / f"{run_id}.jsonl"
@@ -121,7 +121,7 @@ async def _thread(goals: list[str]) -> list[tuple[str, list[dict]]]:
         for goal in goals:
             run_id = f"test-mt-{uuid.uuid4().hex[:6]}"
             result = await graph.ainvoke(
-                {"run_id": run_id, "student_id": ANANYA, "role": "student",
+                {"run_id": run_id, "student_id": ABHIRAM, "role": "student",
                  "goal": goal, "iteration": 0},
                 config={"configurable": {"thread_id": thread_id}},
             )

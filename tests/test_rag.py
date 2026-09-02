@@ -91,7 +91,7 @@ async def test_knowledge_agent_emits_real_citations_on_the_wire():
     step = Step(id="k1", agent="knowledge",
                 task="What is the minimum attendance required to sit the semester end examination?")
     await run_agent_step("knowledge", step,
-                         {"run_id": run_id, "student_id": "1602-23-733-042", "step_results": {}})
+                         {"run_id": run_id, "student_id": "1602-24-735-066", "step_results": {}})
     await bus.close_run(run_id)
     await task
 
@@ -130,7 +130,7 @@ async def test_knowledge_agent_signals_abstention_on_the_wire():
     await asyncio.sleep(0.05)
     step = Step(id="k1", agent="knowledge", task="What is the best pizza topping in Naples?")
     await run_agent_step("knowledge", step,
-                         {"run_id": run_id, "student_id": "1602-23-733-042", "step_results": {}})
+                         {"run_id": run_id, "student_id": "1602-24-735-066", "step_results": {}})
     await bus.close_run(run_id)
     await task
 

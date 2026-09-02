@@ -56,7 +56,7 @@ async def test_planner_timeout_finishes_without_dispatching_a_fallback_write(mon
     result = await nodes.planner_node({
         "run_id": "planner-deadline",
         "goal": "Register me and add it to my calendar",
-        "student_id": "1602-23-733-042",
+        "student_id": "1602-24-735-066",
         "iteration": 0,
     })
 
@@ -82,7 +82,7 @@ async def test_revision_timeout_uses_verified_conflict_free_event(monkeypatch):
     result = await nodes.planner_node({
         "run_id": "revision-deadline",
         "goal": "Check Google eligibility, register me, add it to my calendar and remind me",
-        "student_id": "1602-23-733-042",
+        "student_id": "1602-24-735-066",
         "critic_feedback": "[SCHEDULE_COLLISION] Thursday overlaps DBMS Lab",
         "iteration": 0,
         "plan": Plan(goal="original", steps=[
@@ -130,7 +130,7 @@ async def test_known_workshop_mission_does_not_depend_on_planner_provider(monkey
         "run_id": "known-workflow",
         "goal": ("Am I eligible for the Google internship? If yes, register me for the "
                  "placement workshop, add it to my calendar, and remind me an hour before."),
-        "student_id": "1602-23-733-042",
+        "student_id": "1602-24-735-066",
         "iteration": 0,
     })
 
@@ -154,7 +154,7 @@ async def test_elective_lookup_does_not_depend_on_planner_provider(monkeypatch):
     result = await nodes.planner_node({
         "run_id": "elective-read",
         "goal": "Which electives would suit someone interested in machine learning?",
-        "student_id": "1602-23-733-042",
+        "student_id": "1602-24-735-066",
         "iteration": 0,
     })
 
@@ -163,7 +163,7 @@ async def test_elective_lookup_does_not_depend_on_planner_provider(monkeypatch):
     assert step.agent == "academic"
     assert step.tool == "recommend_electives"
     assert step.tool_args == {
-        "student_id": "1602-23-733-042", "interest": "machine learning",
+        "student_id": "1602-24-735-066", "interest": "machine learning",
     }
 
 
@@ -181,7 +181,7 @@ async def test_attendance_rule_and_records_do_not_depend_on_planner_provider(mon
     result = await nodes.planner_node({
         "run_id": "attendance-read",
         "goal": "What attendance do I need to sit for exams, and am I currently short in anything?",
-        "student_id": "1602-23-733-042",
+        "student_id": "1602-24-735-066",
         "iteration": 0,
     })
 
@@ -204,7 +204,7 @@ async def test_preflight_resolves_event_display_title_before_checking_schedule(m
 
     conflicts, _, checked = await nodes._preflight_conflicts({
         "run_id": "title-preflight",
-        "student_id": "1602-23-733-042",
+        "student_id": "1602-24-735-066",
         "pending_approvals": [{
             "tool": "register_event", "step_id": "s4",
             "args": {"event_id": "Placement Prep Workshop"},

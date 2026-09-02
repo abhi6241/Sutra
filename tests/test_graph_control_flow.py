@@ -14,7 +14,7 @@ from apps.api.graph.build import build_graph  # noqa: E402
 from apps.api.tools import academic, events, placement  # noqa: E402
 from packages.contracts.plan import Plan, Step  # noqa: E402
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 
 
 # --- Topology: approval AFTER critic, single dispatch funnel ---
@@ -148,12 +148,12 @@ async def test_planner_resets_both_channels_on_revision():
 # --- The exact demo scenario's ground truth ---
 
 def test_demo_scenario_ananya_passes_google():
-    elig = placement.check_placement_eligibility(ANANYA, "google")
+    elig = placement.check_placement_eligibility(ABHIRAM, "google")
     assert elig.is_eligible is True
 
 
 def test_demo_scenario_ananya_fails_goldman_by_exactly_0_1_cgpa():
-    elig = placement.check_placement_eligibility(ANANYA, "goldman")
+    elig = placement.check_placement_eligibility(ABHIRAM, "goldman")
     assert elig.is_eligible is False
     cgpa = next(c for c in elig.breakdown if c.criterion == "CGPA")
     assert cgpa.passed is False
@@ -163,14 +163,14 @@ def test_demo_scenario_ananya_fails_goldman_by_exactly_0_1_cgpa():
 def test_demo_scenario_thursday_workshop_collides_with_dbms_lab():
     thu = next(e for e in events.search_events(query="placement workshop").events
                if e.id == "evt_workshop_thu")
-    conflict = academic.check_schedule_conflict(ANANYA, thu.day_of_week, thu.start_time, thu.end_time)
+    conflict = academic.check_schedule_conflict(ABHIRAM, thu.day_of_week, thu.start_time, thu.end_time)
     assert conflict.has_conflict is True
     assert conflict.conflicting_course_id == "CS301L"
     assert "lab" in conflict.conflicting_session.lower()
 
 
 def test_demo_scenario_dbms_attendance_below_75_bar():
-    elig = academic.compute_attendance_eligibility(ANANYA, "CS301L")
+    elig = academic.compute_attendance_eligibility(ABHIRAM, "CS301L")
     assert elig.is_eligible is False
     assert elig.current_pct < 75.0
     assert elig.condonation_possible is True  # 65% <= pct < 75%
@@ -181,6 +181,6 @@ def test_demo_scenario_saturday_batch_is_the_viable_alternative():
     arbitration has nowhere to route the student."""
     sat = next(e for e in events.search_events(query="placement workshop").events
                if e.id == "evt_workshop_sat")
-    conflict = academic.check_schedule_conflict(ANANYA, sat.day_of_week, sat.start_time, sat.end_time)
+    conflict = academic.check_schedule_conflict(ABHIRAM, sat.day_of_week, sat.start_time, sat.end_time)
     assert conflict.has_conflict is False, "Saturday batch must be free of collisions"
     assert sat.seats_remaining == 2, f"expected 2 seats left, got {sat.seats_remaining}"

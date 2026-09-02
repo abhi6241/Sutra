@@ -13,7 +13,7 @@ from apps.api.tools.exceptions import RecordNotFound, SeatsUnavailable
 from apps.api.tools.models import PendingAction
 from apps.api.tools.registry import TOOL_REGISTRY, TOOLS_BY_AGENT
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 RAHUL = "1602-24-736-018"
 
 
@@ -28,14 +28,14 @@ def test_registry_covers_5_agents():
 # --- Academic ---
 
 def test_get_timetable_ananya_has_dbms_lab_thursday():
-    result = academic.get_timetable(ANANYA)
+    result = academic.get_timetable(ABHIRAM)
     lab = next(e for e in result.entries if e.course_id == "CS301L")
     assert lab.day_of_week == "Thursday"
     assert lab.start_time == "14:00" and lab.end_time == "16:00"
 
 
 def test_attendance_eligibility_dbms_lab_below_75():
-    elig = academic.compute_attendance_eligibility(ANANYA, "CS301L")
+    elig = academic.compute_attendance_eligibility(ABHIRAM, "CS301L")
     assert elig.classes_attended == 26
     assert elig.classes_held == 37
     assert elig.is_eligible is False
@@ -43,13 +43,13 @@ def test_attendance_eligibility_dbms_lab_below_75():
 
 
 def test_schedule_conflict_detects_thursday_collision():
-    conflict = academic.check_schedule_conflict(ANANYA, "Thursday", "14:00", "16:00")
+    conflict = academic.check_schedule_conflict(ABHIRAM, "Thursday", "14:00", "16:00")
     assert conflict.has_conflict is True
     assert conflict.conflicting_course_id == "CS301L"
 
 
 def test_schedule_conflict_none_on_free_slot():
-    conflict = academic.check_schedule_conflict(ANANYA, "Thursday", "18:00", "19:00")
+    conflict = academic.check_schedule_conflict(ABHIRAM, "Thursday", "18:00", "19:00")
     assert conflict.has_conflict is False
 
 
@@ -61,13 +61,13 @@ def test_get_attendance_unknown_student_raises():
 # --- Placement ---
 
 def test_ananya_eligible_for_google():
-    elig = placement.check_placement_eligibility(ANANYA, "google")
+    elig = placement.check_placement_eligibility(ABHIRAM, "google")
     assert elig.is_eligible is True
     assert all(c.passed for c in elig.breakdown)
 
 
 def test_ananya_ineligible_for_goldman_by_cgpa():
-    elig = placement.check_placement_eligibility(ANANYA, "goldman")
+    elig = placement.check_placement_eligibility(ABHIRAM, "goldman")
     assert elig.is_eligible is False
     cgpa_check = next(c for c in elig.breakdown if c.criterion == "CGPA")
     assert cgpa_check.passed is False
@@ -82,7 +82,7 @@ def test_rahul_ineligible_everywhere():
 def test_check_placement_eligibility_is_case_insensitive_on_company_id():
     # An LLM picking a tool arg is as likely to pass "Google" (display name
     # casing) as "google" (the literal id) — must resolve either way.
-    elig = placement.check_placement_eligibility(ANANYA, "Google")
+    elig = placement.check_placement_eligibility(ABHIRAM, "Google")
     assert elig.is_eligible is True
 
 
@@ -105,7 +105,7 @@ def test_thursday_workshop_has_2_seats_left():
 
 
 def test_register_event_without_approval_returns_pending_action():
-    result = events.register_event(ANANYA, "evt_workshop_sat")
+    result = events.register_event(ABHIRAM, "evt_workshop_sat")
     assert isinstance(result, PendingAction)
     assert result.tool == "register_event"
 
@@ -125,7 +125,7 @@ def test_register_event_raises_seats_unavailable_when_full():
     for i in range(cap.seats_remaining):
         events.register_event(f"filler-{i}", "evt_ai_ml_1", actor="filler", approved=True)
     with pytest.raises(SeatsUnavailable):
-        events.register_event(ANANYA, "evt_ai_ml_1", actor=ANANYA, approved=True)
+        events.register_event(ABHIRAM, "evt_ai_ml_1", actor=ABHIRAM, approved=True)
 
 
 def test_get_event_capacity_is_case_insensitive_on_event_id():
@@ -135,35 +135,35 @@ def test_get_event_capacity_is_case_insensitive_on_event_id():
 
 
 def test_recommend_clubs_matches_ml_interest():
-    result = events.recommend_clubs(ANANYA, interest="machine learning")
+    result = events.recommend_clubs(ABHIRAM, interest="machine learning")
     assert any("Machine Learning" in r.name for r in result.recommendations)
 
 
 # --- Services & Comms ---
 
 def test_get_hostel_info_ananya():
-    info = services.get_hostel_info(ANANYA)
+    info = services.get_hostel_info(ABHIRAM)
     assert info.block == "B-Block" and info.no_dues is True
 
 
 def test_library_loans_ananya_has_active_loan():
-    result = services.library_loans(ANANYA)
+    result = services.library_loans(ABHIRAM)
     assert any(not loan.returned for loan in result.loans)
 
 
 def test_renew_book_extends_due_date():
-    before = services.library_loans(ANANYA).loans[0].due_at
-    result = services.renew_book(ANANYA, "Database System Concepts", actor=ANANYA)
+    before = services.library_loans(ABHIRAM).loans[0].due_at
+    result = services.renew_book(ABHIRAM, "Database System Concepts", actor=ABHIRAM)
     assert result.new_due_at != before
 
 
 def test_file_grievance_without_approval_returns_pending_action():
-    result = services.file_grievance(ANANYA, "hostel", "Water supply issue in B-Block.")
+    result = services.file_grievance(ABHIRAM, "hostel", "Water supply issue in B-Block.")
     assert isinstance(result, PendingAction)
 
 
 def test_file_grievance_with_approval_writes():
-    result = services.file_grievance(ANANYA, "hostel", "Water supply issue.", actor=ANANYA, approved=True)
+    result = services.file_grievance(ABHIRAM, "hostel", "Water supply issue.", actor=ABHIRAM, approved=True)
     assert result.status == "open"
     assert result.receipt_id
 
@@ -179,22 +179,22 @@ def test_send_email_without_approval_returns_pending_action():
 
 
 def test_send_email_with_approval_sends():
-    result = services.send_email("hod.cse@vasavi.ac.in", "Makeup exam request", "body", actor=ANANYA, approved=True)
+    result = services.send_email("hod.cse@vasavi.ac.in", "Makeup exam request", "body", actor=ABHIRAM, approved=True)
     assert result.status == "sent"
 
 
 def test_add_to_calendar():
-    result = services.add_to_calendar(ANANYA, "Saturday Placement Workshop", "2026-08-15", "10:00", "12:00", actor=ANANYA)
+    result = services.add_to_calendar(ABHIRAM, "Saturday Placement Workshop", "2026-08-15", "10:00", "12:00", actor=ABHIRAM)
     assert result.title == "Saturday Placement Workshop"
 
 
 def test_create_reminder():
-    result = services.create_reminder(ANANYA, "Workshop starts in 1 hour", "2026-08-15T09:00:00", actor=ANANYA)
+    result = services.create_reminder(ABHIRAM, "Workshop starts in 1 hour", "2026-08-15T09:00:00", actor=ABHIRAM)
     assert result.message == "Workshop starts in 1 hour"
 
 
 def test_escalate_to_human():
-    result = services.escalate_to_human(ANANYA, "Out-of-scope request about fee refunds.", actor=ANANYA)
+    result = services.escalate_to_human(ABHIRAM, "Out-of-scope request about fee refunds.", actor=ABHIRAM)
     assert result.status == "escalated"
 
 
@@ -207,9 +207,9 @@ def test_attendance_accepts_a_course_name_not_just_an_id():
     course's attendance."""
     from apps.api.tools.academic import compute_attendance_eligibility
 
-    by_id = compute_attendance_eligibility(ANANYA, "CS301L")
+    by_id = compute_attendance_eligibility(ABHIRAM, "CS301L")
     for alias in ("DBMS Lab", "dbms lab", "DBMS", "cs301l"):
-        assert compute_attendance_eligibility(ANANYA, alias).course_id == by_id.course_id
+        assert compute_attendance_eligibility(ABHIRAM, alias).course_id == by_id.course_id
 
 
 def test_attendance_still_rejects_a_course_that_does_not_exist():
@@ -218,7 +218,7 @@ def test_attendance_still_rejects_a_course_that_does_not_exist():
     from apps.api.tools.exceptions import RecordNotFound
 
     with pytest.raises(RecordNotFound):
-        compute_attendance_eligibility(ANANYA, "CS999")
+        compute_attendance_eligibility(ABHIRAM, "CS999")
 
 
 def test_event_search_ignores_filler_and_unknown_categories():

@@ -113,7 +113,7 @@ async def test_happy_path_run_stays_under_call_budget():
     async with graph_session() as graph:
         config = {"configurable": {"thread_id": run_id}}
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": "1602-23-733-042", "role": "student",
+            {"run_id": run_id, "student_id": "1602-24-735-066", "role": "student",
              "goal": "Am I eligible for the Google internship?", "iteration": 0},
             config=config,
         )

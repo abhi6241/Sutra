@@ -27,7 +27,7 @@ from langgraph.types import Command  # noqa: E402
 from apps.api.graph.build import graph_session  # noqa: E402
 from apps.api.tools import academic  # noqa: E402
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
@@ -40,19 +40,19 @@ def _no_mock_conflict(monkeypatch):
 
 def test_thursday_workshop_really_does_collide_with_the_dbms_lab():
     """The clash is a fact about the seeded timetable, not a narrative device."""
-    conflict = academic.check_schedule_conflict(ANANYA, "Thursday", "14:00", "16:00")
+    conflict = academic.check_schedule_conflict(ABHIRAM, "Thursday", "14:00", "16:00")
     assert conflict.has_conflict
     assert conflict.conflicting_course_id == "CS301L"
 
 
 def test_saturday_batch_is_actually_free():
     """The replan target must be genuinely safe, or the fix is theatre too."""
-    conflict = academic.check_schedule_conflict(ANANYA, "Saturday", "10:00", "12:00")
+    conflict = academic.check_schedule_conflict(ABHIRAM, "Saturday", "10:00", "12:00")
     assert not conflict.has_conflict
 
 
 def test_attendance_impact_is_computed_not_asserted():
-    impact = academic.project_attendance_impact(ANANYA, "CS301L", sessions_missed=1)
+    impact = academic.project_attendance_impact(ABHIRAM, "CS301L", sessions_missed=1)
     assert impact.current_pct == pytest.approx(70.27, abs=0.01)
     assert impact.projected_pct == pytest.approx(68.42, abs=0.01)
     assert impact.delta_pct < 0
@@ -66,7 +66,7 @@ async def _hero_events() -> list[dict]:
     async with graph_session() as graph:
         config = {"configurable": {"thread_id": run_id}}
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "role": "student",
+            {"run_id": run_id, "student_id": ABHIRAM, "role": "student",
              "goal": "Register me for the placement workshop", "iteration": 0},
             config=config,
         )

@@ -16,7 +16,7 @@ os.environ["MOCK_LLM"] = "1"
 
 from apps.api.memory import write_turn_memory  # noqa: E402
 
-STUDENT = "1602-23-733-042"
+STUDENT = "1602-24-735-066"
 
 
 async def main():

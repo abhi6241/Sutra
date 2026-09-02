@@ -33,7 +33,7 @@ from apps.api.graph.nodes import (  # noqa: E402
     _render_action_log, _strip_unresolvable_citations,
 )
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 GOAL = "Am I eligible for the Google internship? Register me for the placement workshop."
 
@@ -85,7 +85,7 @@ async def _run(decision: str) -> tuple[str, list[dict]]:
     async with graph_session() as graph:
         config = {"configurable": {"thread_id": run_id}}
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "role": "student",
+            {"run_id": run_id, "student_id": ABHIRAM, "role": "student",
              "goal": GOAL, "iteration": 0},
             config=config,
         )
@@ -234,16 +234,16 @@ async def test_the_guard_itself_fires_when_the_same_action_is_re_proposed():
 
     action = {"id": "fresh-id-from-a-replan", "step_id": "s2", "agent": "events",
               "tool": "register_event",
-              "args": {"student_id": ANANYA, "event_id": "evt_workshop_sat"},
+              "args": {"student_id": ABHIRAM, "event_id": "evt_workshop_sat"},
               "description": "Register for the Saturday workshop"}
     state = {
         "run_id": f"test-guard-{uuid.uuid4().hex[:6]}",
-        "student_id": ANANYA,
+        "student_id": ABHIRAM,
         "pending_approvals": [action],
         "approval_decisions": {},
         # Same work, DIFFERENT approval id — exactly what a replan produces.
         "action_log": [{"approval_id": "old-id", "step_id": "s2", "tool": "register_event",
-                        "args": {"event_id": "evt_workshop_sat", "student_id": ANANYA},
+                        "args": {"event_id": "evt_workshop_sat", "student_id": ABHIRAM},
                         "outcome": "not_executed", "decision": "reject"}],
         "plan": None,
     }
@@ -272,16 +272,16 @@ async def test_the_guard_does_not_block_a_genuinely_different_action(monkeypatch
                         lambda payload: (asked.append(payload), {"decision": "approve"})[1])
 
     action = {"id": "sat", "step_id": "s2", "agent": "events", "tool": "register_event",
-              "args": {"student_id": ANANYA, "event_id": "evt_workshop_sat"},
+              "args": {"student_id": ABHIRAM, "event_id": "evt_workshop_sat"},
               "description": "Register for the Saturday workshop"}
     state = {
         "run_id": f"test-guard2-{uuid.uuid4().hex[:6]}",
-        "student_id": ANANYA,
+        "student_id": ABHIRAM,
         "pending_approvals": [action],
         "approval_decisions": {},
         # A DIFFERENT event was declined; this one has never been refused.
         "action_log": [{"approval_id": "thu", "step_id": "s2", "tool": "register_event",
-                        "args": {"student_id": ANANYA, "event_id": "evt_workshop_thu"},
+                        "args": {"student_id": ABHIRAM, "event_id": "evt_workshop_thu"},
                         "outcome": "not_executed", "decision": "reject"}],
         "plan": None,
     }

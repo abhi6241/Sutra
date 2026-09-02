@@ -25,7 +25,7 @@ from apps.api.graph.nodes import (  # noqa: E402
 from apps.api.tools import events as events_tool  # noqa: E402
 from packages.contracts.plan import Plan, Step  # noqa: E402
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
@@ -97,7 +97,7 @@ async def _run(decision: str) -> list[dict]:
     async with graph_session() as graph:
         config = {"configurable": {"thread_id": run_id}}
         result = await graph.ainvoke(
-            {"run_id": run_id, "student_id": ANANYA, "role": "student",
+            {"run_id": run_id, "student_id": ABHIRAM, "role": "student",
              "goal": "register me for the placement workshop", "iteration": 0},
             config=config,
         )
@@ -184,9 +184,9 @@ async def test_tool_result_carries_structured_data():
 
 def test_registering_twice_does_not_consume_two_seats():
     before = events_tool.get_event_capacity("evt_cyber_ws")
-    first = events_tool.register_event(ANANYA, "evt_cyber_ws", actor=ANANYA, approved=True)
+    first = events_tool.register_event(ABHIRAM, "evt_cyber_ws", actor=ABHIRAM, approved=True)
     mid = events_tool.get_event_capacity("evt_cyber_ws")
-    second = events_tool.register_event(ANANYA, "evt_cyber_ws", actor=ANANYA, approved=True)
+    second = events_tool.register_event(ABHIRAM, "evt_cyber_ws", actor=ABHIRAM, approved=True)
     after = events_tool.get_event_capacity("evt_cyber_ws")
 
     assert mid.seats_taken == before.seats_taken + 1

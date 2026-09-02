@@ -14,7 +14,7 @@ os.environ["MOCK_LLM"] = "1"
 from apps.api.graph.build import graph_session  # noqa: E402
 
 THREAD_ID = "checkpoint-durability-thread"
-STUDENT = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 
 
 async def main():
@@ -22,7 +22,7 @@ async def main():
     async with graph_session() as graph:
         config = {"configurable": {"thread_id": THREAD_ID}}
         result = await graph.ainvoke(
-            {"run_id": THREAD_ID, "student_id": STUDENT, "role": "student",
+            {"run_id": THREAD_ID, "student_id": ABHIRAM, "role": "student",
              "goal": "Register me for the placement workshop.", "iteration": 0},
             config=config,
         )

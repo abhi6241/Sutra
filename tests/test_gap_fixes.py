@@ -14,7 +14,7 @@ from apps.api.tools import events, services
 from apps.api.tools.exceptions import SeatsUnavailable
 from apps.api.tools.registry import TOOL_REGISTRY, can_invoke
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 DB_PATH = Path(__file__).resolve().parents[1] / "data" / "campus.db"
 
 
@@ -30,7 +30,7 @@ def test_register_event_never_oversells_last_seat():
 
     assert events.get_event_capacity("evt_cyber_ws").seats_remaining == 1
 
-    events.register_event(ANANYA, "evt_cyber_ws", actor=ANANYA, approved=True)
+    events.register_event(ABHIRAM, "evt_cyber_ws", actor=ABHIRAM, approved=True)
     with pytest.raises(SeatsUnavailable):
         events.register_event("someone-else", "evt_cyber_ws", actor="someone-else", approved=True)
 
@@ -80,14 +80,14 @@ def test_role_below_requirement_is_denied():
 
 def test_validated_edited_args_accepts_known_fields():
     args = _validated_edited_args(events.register_event, "register_event",
-                                   {"student_id": ANANYA, "event_id": "evt_workshop_sat"})
-    assert args == {"student_id": ANANYA, "event_id": "evt_workshop_sat"}
+                                   {"student_id": ABHIRAM, "event_id": "evt_workshop_sat"})
+    assert args == {"student_id": ABHIRAM, "event_id": "evt_workshop_sat"}
 
 
 def test_validated_edited_args_rejects_unknown_field():
     with pytest.raises(ValueError, match="unknown field"):
         _validated_edited_args(events.register_event, "register_event",
-                                {"student_id": ANANYA, "event_id": "x", "seats_taken": 0})
+                                {"student_id": ABHIRAM, "event_id": "x", "seats_taken": 0})
 
 
 def test_validated_edited_args_rejects_approved_injection():
@@ -111,4 +111,4 @@ def test_edited_args_recheck_catches_full_event():
     for i in range(remaining):
         events.register_event(f"filler-full-{i}", "evt_ai_ml_3", actor="filler", approved=True)
     with pytest.raises(SeatsUnavailable):
-        events.register_event(ANANYA, "evt_ai_ml_3", approved=False)
+        events.register_event(ABHIRAM, "evt_ai_ml_3", approved=False)

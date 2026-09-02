@@ -15,11 +15,11 @@ os.environ["MOCK_LLM"] = "1"
 
 from apps.api.memory import load_memory_block  # noqa: E402
 
-STUDENT = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 
 
 def main():
-    print(f"[B pid={os.getpid()}] recalling memory for {STUDENT} in a NEW session")
+    print(f"[B pid={os.getpid()}] recalling memory for {ABHIRAM} in a NEW session")
     failures = []
 
     # --- Case 1: the battle plan's scenario. An UNRELATED follow-up question.
@@ -28,7 +28,7 @@ def main():
     # actually relevant to electives. Silence here is correct behaviour, not a
     # miss — recalling unrelated chatter would be the bug.
     block, facts, recalled = load_memory_block(
-        STUDENT, "What electives should I take next semester?"
+        ABHIRAM, "What electives should I take next semester?"
     )
     print(f"\n[B] CASE 1 — unrelated query 'What electives should I take next semester?'")
     print(f"    profile facts recalled ({len(facts)}):")
@@ -54,7 +54,7 @@ def main():
     # turn summary written by the other process, proving tier 3 also survived
     # the restart rather than merely being unreachable in case 1.
     block2, _, recalled2 = load_memory_block(
-        STUDENT, "Remind me what we decided about the Google internship and the workshop."
+        ABHIRAM, "Remind me what we decided about the Google internship and the workshop."
     )
     print(f"[B] CASE 2 — related query about the Google internship")
     print(f"    semantic summaries recalled ({len(recalled2)}):")

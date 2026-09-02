@@ -11,7 +11,7 @@ from apps.api.tools import chaos, events, resilience
 from apps.api.tools.exceptions import SeatsUnavailable
 from apps.api.tools.registry import TOOL_REGISTRY
 
-ANANYA = "1602-23-733-042"
+ABHIRAM = "1602-24-735-066"
 
 
 @pytest.fixture(autouse=True)
@@ -27,7 +27,7 @@ def clean_chaos_state():
 
 def test_healthy_service_passes_through():
     fn = TOOL_REGISTRY["check_placement_eligibility"]["fn"]
-    result = fn(student_id=ANANYA, company_id="google")
+    result = fn(student_id=ABHIRAM, company_id="google")
     assert result.is_eligible is True
     assert resilience.drain_events() == []  # no retries needed
 
@@ -36,7 +36,7 @@ def test_error_500_retries_then_falls_back_to_rag_policy():
     chaos.set_mode("placement", "error_500")
     fn = TOOL_REGISTRY["check_placement_eligibility"]["fn"]
 
-    result = fn(student_id=ANANYA, company_id="google")
+    result = fn(student_id=ABHIRAM, company_id="google")
 
     # Fell back rather than raising or returning a wrong answer.
     assert isinstance(result, dict)
@@ -53,7 +53,7 @@ def test_tool_without_fallback_degrades_instead_of_raising():
     chaos.set_mode("erp", "error_500")
     fn = TOOL_REGISTRY["get_attendance"]["fn"]
 
-    result = fn(student_id=ANANYA)
+    result = fn(student_id=ABHIRAM)
 
     assert isinstance(result, dict)
     assert result["degraded"] is True
@@ -67,10 +67,10 @@ def test_circuit_opens_after_repeated_failures_and_short_circuits():
     chaos.set_mode("erp", "error_500")
     fn = TOOL_REGISTRY["get_timetable"]["fn"]
 
-    fn(student_id=ANANYA)          # 3 failures (1 + 2 retries) -> opens circuit
+    fn(student_id=ABHIRAM)          # 3 failures (1 + 2 retries) -> opens circuit
     resilience.drain_events()
 
-    fn(student_id=ANANYA)          # second call should short-circuit
+    fn(student_id=ABHIRAM)          # second call should short-circuit
     kinds = [e for e in resilience.drain_events()]
     assert any(e["payload"].get("reason") == "circuit_open" for e in kinds), \
         f"expected a circuit_open fallback, got {kinds}"
@@ -87,7 +87,7 @@ def test_domain_refusal_is_not_swallowed_as_infrastructure_failure():
 
     fn = TOOL_REGISTRY["register_event"]["fn"]
     with pytest.raises(SeatsUnavailable):
-        fn(student_id=ANANYA, event_id="evt_alumni_talk", approved=True)
+        fn(student_id=ABHIRAM, event_id="evt_alumni_talk", approved=True)
 
     # Crucially: no retries were burned on a decision that will never change.
     assert not any(e["kind"] == "tool.retry" for e in resilience.drain_events())
