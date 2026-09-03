@@ -1,6 +1,6 @@
 # Setup Guide
 
-Step-by-step instructions for setting up the Sūtra development environment.
+Step-by-step instructions for setting up the VasaviHub development environment.
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ Step-by-step instructions for setting up the Sūtra development environment.
 
 ```bash
 git clone <repo-url>
-cd sutra-main
+cd vasavihub-main
 ```
 
 ### 2. Install Python Dependencies

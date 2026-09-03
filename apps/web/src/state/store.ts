@@ -155,12 +155,12 @@ export const useStore = create<UIState & Actions>((set, get) => ({
   setMode: (mode) => set({ mode }),
   setTheme: (theme) => {
     if (typeof document !== 'undefined') document.documentElement.setAttribute('data-theme', theme)
-    if (typeof window !== 'undefined') window.localStorage.setItem('sutra-theme', theme)
+    if (typeof window !== 'undefined') window.localStorage.setItem('vasavihub-theme', theme)
     set({ theme })
   },
   setLocale: (locale) => {
     if (typeof document !== 'undefined') document.documentElement.lang = locale
-    if (typeof window !== 'undefined') window.localStorage.setItem('sutra-locale', locale)
+    if (typeof window !== 'undefined') window.localStorage.setItem('vasavihub-locale', locale)
     set({ locale })
   },
   setFixture: (fixture) => set({ fixture }),

@@ -34,7 +34,7 @@ function googleCalendarUrl(item: CalendarItem): string {
   const end = compactDateTime(item.date, item.end_time ?? item.start_time)
   const query = new URLSearchParams({
     action: 'TEMPLATE', text: item.title, dates: `${start}/${end}`,
-    details: `${item.source}${item.receipt_ids.length ? `\nSūtra receipts: ${item.receipt_ids.join(', ')}` : ''}`,
+    details: `${item.source}${item.receipt_ids.length ? `\nVasaviHub receipts: ${item.receipt_ids.join(', ')}` : ''}`,
     ctz: 'Asia/Kolkata',
   })
   return `https://calendar.google.com/calendar/render?${query.toString()}`
@@ -43,8 +43,8 @@ function googleCalendarUrl(item: CalendarItem): string {
 function downloadIcs(item: CalendarItem) {
   const escape = (value: string) => value.replaceAll('\\', '\\\\').replaceAll(',', '\\,').replaceAll(';', '\\;').replaceAll('\n', '\\n')
   const lines = [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Sutra//Campus Calendar//EN',
-    'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:${item.id}@sutra.local`,
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//VasaviHub//Campus Calendar//EN',
+    'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:${item.id}@vasavihub.local`,
     `DTSTART;TZID=Asia/Kolkata:${compactDateTime(item.date, item.start_time)}`,
     `DTEND;TZID=Asia/Kolkata:${compactDateTime(item.date, item.end_time ?? item.start_time)}`,
     `SUMMARY:${escape(item.title)}`, `DESCRIPTION:${escape(`${item.source}${item.receipt_ids.length ? ` · receipts ${item.receipt_ids.join(', ')}` : ''}`)}`,
@@ -53,7 +53,7 @@ function downloadIcs(item: CalendarItem) {
   const url = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' }))
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `${item.title.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'sutra-event'}.ics`
+  anchor.download = `${item.title.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase() || 'vasavihub-event'}.ics`
   anchor.click()
   URL.revokeObjectURL(url)
 }
@@ -120,7 +120,7 @@ export function CalendarPage({ data, loading, error, onClose, onRefresh }: {
         <div className="calendar-brand">
           <span className="calendar-brand-icon"><CalendarDays size={20} /></span>
           <span>
-            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Sūtra calendar</span>
+            <span className="eyebrow" style={{ color: 'var(--accent)' }}>VasaviHub calendar</span>
             <strong className="font-display">Your commitments, after approval</strong>
           </span>
         </div>
@@ -165,7 +165,7 @@ export function CalendarPage({ data, loading, error, onClose, onRefresh }: {
 
       <main className="calendar-workspace">
         <section className="calendar-grid-shell" aria-label={`${month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })} calendar`}>
-          {error && <div className="calendar-notice is-error">Calendar records are unavailable. The rest of Sūtra is unaffected.</div>}
+          {error && <div className="calendar-notice is-error">Calendar records are unavailable. The rest of VasaviHub is unaffected.</div>}
           <div className="calendar-weekdays">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => <span key={day}>{day}</span>)}
           </div>

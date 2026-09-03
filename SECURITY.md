@@ -1,6 +1,6 @@
 # Security
 
-Security analysis of the Sūtra Smart Campus system.
+Security analysis of the VasaviHub Smart Campus system.
 
 ## Authentication
 

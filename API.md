@@ -1,6 +1,6 @@
 # API Reference
 
-Complete HTTP API documentation for the Sūtra backend.
+Complete HTTP API documentation for the VasaviHub backend.
 
 **Base URL:** `http://localhost:8000`
 

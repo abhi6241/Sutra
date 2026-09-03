@@ -1,7 +1,7 @@
 """
 Purge test and scratch turns from the semantic memory store.
 
-The Memory panel is user-facing: it shows what Sūtra remembers about this
+The Memory panel is user-facing: it shows what VasaviHub remembers about this
 student across conversations. Every pytest run and every ad-hoc probe wrote a
 turn summary into the same collection, so by demo time it held dozens of
 `test-*` threads and near-duplicate summaries of the same scripted question —

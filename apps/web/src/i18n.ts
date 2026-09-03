@@ -6,7 +6,7 @@ export function isLocale(value: unknown): value is Locale {
 
 export function storedLocale(): Locale {
   if (typeof window === 'undefined') return 'en'
-  const value = window.localStorage.getItem('sutra-locale')
+  const value = window.localStorage.getItem('vasavihub-locale')
   return isLocale(value) ? value : 'en'
 }
 

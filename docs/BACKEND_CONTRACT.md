@@ -1,4 +1,4 @@
-# Sūtra — Backend Contract
+# VasaviHub — Backend Contract
 
 Everything the frontend receives from the backend, and how to consume it.
 

@@ -69,9 +69,9 @@ async def lifespan(app: FastAPI):
         yield
 
 
-app = FastAPI(title="Sūtra — Smart Campus Multi-Agent API", lifespan=lifespan)
+app = FastAPI(title="VasaviHub — Smart Campus Multi-Agent API", lifespan=lifespan)
 
-_cors_origins = os.environ.get("SUTRA_CORS_ORIGINS", "http://localhost:5173")
+_cors_origins = os.environ.get("VASAVIHUB_CORS_ORIGINS", "http://localhost:5173")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in _cors_origins.split(",")],

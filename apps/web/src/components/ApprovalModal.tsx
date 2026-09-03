@@ -69,7 +69,7 @@ export function ApprovalModal({ onDecide }: Props) {
       position: 'fixed', inset: 0, zIndex: 100,
       background: 'rgb(17 19 24 / 0.2)', backdropFilter: 'blur(8px)',
       display: 'grid', placeItems: 'center', padding: 24,
-      animation: 'sutra-fade-in 0.15s ease',
+      animation: 'vasavihub-fade-in 0.15s ease',
     }}>
       <div className={shake ? 'shake' : undefined} style={{
         width: 580, maxWidth: '100%', maxHeight: '86vh', overflow: 'auto',

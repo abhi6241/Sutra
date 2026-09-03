@@ -41,7 +41,7 @@ export default function App() {
   const transportEpochRef = useRef(0)
 
   useEffect(() => {
-    const saved = localStorage.getItem('sutra-theme') as 'light' | 'dark' | null
+    const saved = localStorage.getItem('vasavihub-theme') as 'light' | 'dark' | null
     const stamped = document.documentElement.getAttribute('data-theme') as 'light' | 'dark' | null
     const os = window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     s.setTheme(saved ?? stamped ?? os)
@@ -458,7 +458,7 @@ function Header({
     }}>
       {/* Brand */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, paddingRight: 20, borderRight: '1px solid var(--line)' }}>
-        <span className="font-display" style={{ fontSize: 20, letterSpacing: '-0.03em' }}>Sūtra</span>
+        <span className="font-display" style={{ fontSize: 20, letterSpacing: '-0.03em' }}>VasaviHub</span>
         <span className="eyebrow" style={{ fontSize: 10, opacity: 0.7 }}>Smart Campus</span>
       </div>
 

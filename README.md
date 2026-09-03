@@ -1,10 +1,10 @@
-# Sūtra — Smart Campus Multi-Agent Orchestrator
+# VasaviHub — Smart Campus Multi-Agent Orchestrator
 
-A multi-agent AI assistant for engineering college campuses, built for the **AgentX 2026 hackathon**. Sūtra answers student questions about academics, placements, events, campus services, and institutional policy documents using five specialist AI agents that run in parallel, with human-in-the-loop approval for any action that modifies records.
+A multi-agent AI assistant for engineering college campuses, built for the **AgentX 2026 hackathon**. VasaviHub answers student questions about academics, placements, events, campus services, and institutional policy documents using five specialist AI agents that run in parallel, with human-in-the-loop approval for any action that modifies records.
 
 ## Problem
 
-College students navigate fragmented systems — separate portals for attendance, placement eligibility, event registration, library loans, and policy documents. Getting a single answer like *"Can I register for the placement workshop on Thursday?"* requires cross-referencing timetable data, attendance records, event capacity, placement criteria, and academic regulations across multiple systems. Sūtra unifies this into a single conversational interface backed by real campus data.
+College students navigate fragmented systems — separate portals for attendance, placement eligibility, event registration, library loans, and policy documents. Getting a single answer like *"Can I register for the placement workshop on Thursday?"* requires cross-referencing timetable data, attendance records, event capacity, placement criteria, and academic regulations across multiple systems. VasaviHub unifies this into a single conversational interface backed by real campus data.
 
 ## Key Features
 
@@ -63,7 +63,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical architecture.
 ## Project Structure
 
 ```
-sutra-main/
+vasavihub-main/
 ├── apps/
 │   ├── api/                    # FastAPI backend
 │   │   ├── main.py             # Entrypoint: POST /chat, GET /stream, POST /approve
@@ -111,7 +111,7 @@ sutra-main/
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd sutra-main
+cd vasavihub-main
 
 # Install Python dependencies
 pip install -r requirements.txt

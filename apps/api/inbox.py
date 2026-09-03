@@ -197,7 +197,7 @@ def build_inbox(student_id: str, *, today: date | None = None) -> InboxResponse:
             items.append(InboxItem(
                 id=f"reminder:{row['id']}", kind="reminder", severity="info",
                 title="Reminder", detail=row["message"], due_at=row["remind_at"],
-                source="Sūtra reminder",
+                source="VasaviHub reminder",
             ))
 
     items.sort(key=lambda item: (_SEVERITY_ORDER[item.severity], item.due_at or "9999"))

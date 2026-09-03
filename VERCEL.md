@@ -1,6 +1,6 @@
 # Vercel Deployment
 
-How to deploy Sūtra to Vercel.
+How to deploy VasaviHub to Vercel.
 
 ## Architecture
 
@@ -112,7 +112,7 @@ ssh user@your-server
 
 # Clone and setup
 git clone <repo-url>
-cd sutra-main
+cd vasavihub-main
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -139,7 +139,7 @@ app.add_middleware(
 )
 ```
 
-Or set the `SUTRA_CORS_ORIGINS` environment variable (if you add support for it).
+Or set the `VASAVIHUB_CORS_ORIGINS` environment variable (if you add support for it).
 
 ## Connecting Frontend to Backend
 

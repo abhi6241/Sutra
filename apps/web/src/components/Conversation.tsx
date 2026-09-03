@@ -168,7 +168,7 @@ function Welcome({ onPick }: { onPick: (text: string) => void }) {
     { label: t('eligibilityOnly'), text: t('eligibilityPrompt'), color: 'var(--success)' },
   ]
   return (
-    <div style={{ paddingTop: 12, animation: 'sutra-fade-in 0.4s ease both' }}>
+    <div style={{ paddingTop: 12, animation: 'vasavihub-fade-in 0.4s ease both' }}>
       {/* Logo mark */}
       <div style={{
         width: 48, height: 48, borderRadius: 'var(--r-card)',

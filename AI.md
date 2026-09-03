@@ -1,10 +1,10 @@
 # AI Implementation
 
-Detailed documentation of the AI/ML components in Sūtra.
+Detailed documentation of the AI/ML components in VasaviHub.
 
 ## Purpose
 
-Sūtra uses AI to:
+VasaviHub uses AI to:
 1. **Decompose** student questions into structured multi-step plans
 2. **Select tools** for each specialist agent based on context
 3. **Compose** step results from tool outputs

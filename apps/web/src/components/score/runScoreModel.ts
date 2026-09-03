@@ -1,7 +1,7 @@
 import type { AgentEvent } from '../../types/events'
 
 export const SCORE_LANES = [
-  { id: 'orchestrator', label: 'Sūtradhāra', role: 'plans · arbitrates · gates' },
+  { id: 'orchestrator', label: 'VasaviHubdhāra', role: 'plans · arbitrates · gates' },
   { id: 'academic', label: 'Academic', role: 'schedule · attendance · veto' },
   { id: 'placement', label: 'Placement', role: 'eligibility · preparation' },
   { id: 'events', label: 'Events', role: 'discovery · registration' },

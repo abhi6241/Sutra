@@ -432,7 +432,7 @@ def _mock_llm(system, messages, json_mode):
             return {
                 "goal": _goal_line.strip(), "reasoning": "Greeting — nothing to look up.",
                 "steps": [],
-                "reply": "Hey — I'm Sūtra, your campus assistant. I can check your "
+                "reply": "Hey — I'm VasaviHub, your campus assistant. I can check your "
                          "attendance and timetable, work out placement eligibility, "
                          "find and register you for events, and answer questions "
                          "straight from the regulations. What do you need?",

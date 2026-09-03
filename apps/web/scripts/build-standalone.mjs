@@ -10,7 +10,7 @@
  * Replay only, by construction: there is no backend to talk to, so the live
  * controls simply report the backend as down.
  *
- *     node scripts/build-standalone.mjs   ->  dist-standalone/sutra.html
+ *     node scripts/build-standalone.mjs   ->  dist-standalone/vasavihub.html
  */
 import { execSync } from 'node:child_process'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
@@ -59,7 +59,7 @@ let out = html
   .replace(
     '</body>',
     () =>
-      `<script>window.__SUTRA_FIXTURES__=${fixturesJson};</script>\n` +
+      `<script>window.__VASAVIHUB_FIXTURES__=${fixturesJson};</script>\n` +
       `<script type="module">${inlineJs}</script>\n</body>`,
   )
 
@@ -79,25 +79,25 @@ function check(name, doc, { expectRoot = true, extraStyles = 0 } = {}) {
 }
 
 mkdirSync(OUT_DIR, { recursive: true })
-const outPath = join(OUT_DIR, 'sutra.html')
-check('sutra.html', out)
+const outPath = join(OUT_DIR, 'vasavihub.html')
+check('vasavihub.html', out)
 writeFileSync(outPath, out, 'utf8')
 
 // A second, scaffolding-free variant for hosts that supply their own
 // <html>/<head>/<body> and inject this as page content.
 const fragment = [
-  `<title>Sūtra — Smart Campus Orchestrator</title>`,
+  `<title>VasaviHub — Smart Campus Orchestrator</title>`,
   inlineCss,
   // The app fills the viewport; a host page's default body flow would
   // collapse it to zero height.
   `<style>html,body{height:100%;margin:0}#root{height:100vh}</style>`,
   `<div id="root"></div>`,
-  `<script>window.__SUTRA_FIXTURES__=${fixturesJson};</script>`,
+  `<script>window.__VASAVIHUB_FIXTURES__=${fixturesJson};</script>`,
   `<script type="module">${inlineJs}</script>`,
 ].join('\n')
-const fragPath = join(OUT_DIR, 'sutra-embed.html')
+const fragPath = join(OUT_DIR, 'vasavihub-embed.html')
 // +1 for the host-page sizing rules this variant adds.
-check('sutra-embed.html', fragment, { extraStyles: 1 })
+check('vasavihub-embed.html', fragment, { extraStyles: 1 })
 writeFileSync(fragPath, fragment, 'utf8')
 
 const mb = (n) => (Buffer.byteLength(n) / 1024 / 1024).toFixed(2)

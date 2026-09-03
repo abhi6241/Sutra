@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: sutra-backend
+    name: vasavihub-backend
     runtime: python
     plan: standard
     buildCommand: pip install -r requirements.txt
@@ -19,13 +19,13 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: SUTRA_CORS_ORIGINS
+      - key: VASAVIHUB_CORS_ORIGINS
         value: "http://localhost:5173"
       - key: GRAPH_LEG_TIMEOUT_S
         value: "60"
       - key: OLLAMA_DISABLE
         value: "1"
     disk:
-      name: sutra-data
+      name: vasavihub-data
       mountPath: /app/data
       sizeGB: 1

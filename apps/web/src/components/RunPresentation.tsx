@@ -90,7 +90,7 @@ export function RunPresentation({
 
         <div style={{ minWidth: 230 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-            <span className="font-display" style={{ fontSize: 25 }}>Sūtra</span>
+            <span className="font-display" style={{ fontSize: 25 }}>VasaviHub</span>
             <span className="eyebrow" style={{ color: 'var(--accent)' }}>Presentation mode</span>
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-600)', whiteSpace: 'nowrap' }}>

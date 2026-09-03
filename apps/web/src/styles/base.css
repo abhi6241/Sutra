@@ -86,16 +86,16 @@ body {
 }
 
 /* Shared, in-phase pulse */
-@keyframes sutra-pulse { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
+@keyframes vasavihub-pulse { 0%,100% { opacity: .3 } 50% { opacity: 1 } }
 .pulse-dot {
   width: 7px; height: 7px; border-radius: 999px;
-  animation: sutra-pulse 1600ms ease-in-out infinite;
+  animation: vasavihub-pulse 1600ms ease-in-out infinite;
 }
-@keyframes sutra-shake {
+@keyframes vasavihub-shake {
   0%,100% { transform: translateX(0) } 25% { transform: translateX(-5px) }
   75% { transform: translateX(5px) }
 }
-.shake { animation: sutra-shake 400ms ease-in-out; }
+.shake { animation: vasavihub-shake 400ms ease-in-out; }
 
 /* The cockpit grid */
 .cockpit {
@@ -119,17 +119,17 @@ body {
 .react-flow__attribution { display: none; }
 
 /* Evidence card entrance */
-@keyframes sutra-rise {
+@keyframes vasavihub-rise {
   from { opacity: 0; transform: translateY(12px) }
   to   { opacity: 1; transform: none }
 }
-.evidence-card { animation: sutra-rise var(--t-enter) both; }
+.evidence-card { animation: vasavihub-rise var(--t-enter) both; }
 
-@keyframes sutra-slide-in {
+@keyframes vasavihub-slide-in {
   from { transform: translateX(20px); opacity: 0 }
   to   { transform: none; opacity: 1 }
 }
-.inspector { animation: sutra-slide-in var(--t-state) both; }
+.inspector { animation: vasavihub-slide-in var(--t-state) both; }
 
 /* Mission hover states */
 .mission, .mission-group { transition: background var(--t-micro), border-color var(--t-micro), box-shadow var(--t-micro), transform var(--t-micro); }
@@ -149,9 +149,9 @@ body {
 .voice-button:disabled { cursor: not-allowed; opacity: .45; }
 .voice-button.is-listening {
   color: var(--danger); border-color: var(--danger); background: var(--danger-bg);
-  animation: sutra-mic-pulse 1.2s ease-in-out infinite;
+  animation: vasavihub-mic-pulse 1.2s ease-in-out infinite;
 }
-@keyframes sutra-mic-pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--danger) 16%, transparent) } }
+@keyframes vasavihub-mic-pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--danger) 16%, transparent) } }
 
 /* Shared button styles */
 .btn-primary {
@@ -289,9 +289,9 @@ body {
 .inbox-drawer {
   width: min(480px, 100vw); height: 100%; display: flex; flex-direction: column;
   background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--e3);
-  animation: sutra-inbox-in var(--t-state) both;
+  animation: vasavihub-inbox-in var(--t-state) both;
 }
-@keyframes sutra-inbox-in { from { transform: translateX(24px); opacity: .5 } to { transform: none; opacity: 1 } }
+@keyframes vasavihub-inbox-in { from { transform: translateX(24px); opacity: .5 } to { transform: none; opacity: 1 } }
 .inbox-head { padding: 22px 22px 17px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); }
 .icon-button {
   width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
@@ -331,25 +331,25 @@ body {
 .inbox-empty strong { color: var(--ink-900); }
 .inbox-empty span { font-size: 12px; max-width: 290px; }
 .inbox-foot { min-height: 42px; padding: 10px 22px; display: flex; justify-content: space-between; border-top: 1px solid var(--line); color: var(--ink-400); font-size: 10.5px; }
-@keyframes sutra-spin { to { transform: rotate(360deg) } }
-.spin { animation: sutra-spin 800ms linear infinite; }
+@keyframes vasavihub-spin { to { transform: rotate(360deg) } }
+.spin { animation: vasavihub-spin 800ms linear infinite; }
 
 /* New: smooth page entrance */
-@keyframes sutra-fade-in {
+@keyframes vasavihub-fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
-.fade-in { animation: sutra-fade-in 0.3s ease both; }
+.fade-in { animation: vasavihub-fade-in 0.3s ease both; }
 
 /* New: shimmer loading skeleton */
-@keyframes sutra-shimmer {
+@keyframes vasavihub-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .skeleton {
   background: linear-gradient(90deg, var(--surface-sunken) 25%, var(--line) 50%, var(--surface-sunken) 75%);
   background-size: 200% 100%;
-  animation: sutra-shimmer 1.5s ease-in-out infinite;
+  animation: vasavihub-shimmer 1.5s ease-in-out infinite;
   border-radius: var(--r-chip);
 }
 

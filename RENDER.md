@@ -1,6 +1,6 @@
 # Render Deployment
 
-How to deploy the Sūtra backend to Render.
+How to deploy the VasaviHub backend to Render.
 
 ## Quick Deploy
 
@@ -18,7 +18,7 @@ git push
 2. Click **New Blueprint Instance**
 3. Connect your GitHub repository
 4. Render detects `render.yaml` and provisions:
-   - A **Web Service** (`sutra-backend`) on Python 3.11
+   - A **Web Service** (`vasavihub-backend`) on Python 3.11
    - A **1 GB persistent disk** mounted at `/app/data`
 5. Set environment variables in the Render dashboard (see below)
 6. Click **Apply**
@@ -30,7 +30,7 @@ In the Render dashboard, go to **Environment** and add:
 | Variable | Required | Value |
 |----------|----------|-------|
 | `GROQ_API_KEY` | Yes | Your Groq API key |
-| `SUTRA_CORS_ORIGINS` | Yes | `https://your-frontend.vercel.app,http://localhost:5173` |
+| `VASAVIHUB_CORS_ORIGINS` | Yes | `https://your-frontend.vercel.app,http://localhost:5173` |
 | `GEMINI_API_KEY` | No | Gemini fallback key |
 | `ANTHROPIC_API_KEY` | No | Anthropic fallback key |
 | `OPENAI_API_KEY` | No | OpenAI fallback key |
@@ -67,17 +67,17 @@ Database seeding runs at **first boot**, not at build time. This means:
 
 ## CORS Configuration
 
-The backend now reads CORS origins from `SUTRA_CORS_ORIGINS`:
+The backend now reads CORS origins from `VASAVIHUB_CORS_ORIGINS`:
 
 ```python
 # apps/api/main.py
-_cors_origins = os.environ.get("SUTRA_CORS_ORIGINS", "http://localhost:5173")
+_cors_origins = os.environ.get("VASAVIHUB_CORS_ORIGINS", "http://localhost:5173")
 ```
 
 For a Vercel frontend + Render backend:
 
 ```
-SUTRA_CORS_ORIGINS=https://your-project.vercel.app,http://localhost:5173
+VASAVIHUB_CORS_ORIGINS=https://your-project.vercel.app,http://localhost:5173
 ```
 
 ## Persistent Disk
@@ -131,7 +131,7 @@ Or simply **restart the service** — the startup script re-seeds if `campus.db`
 
 1. Deploy frontend to Vercel (see [VERCEL.md](VERCEL.md))
 2. Set `VITE_API_URL` to your Render backend URL
-3. Set `SUTRA_CORS_ORIGINS` on Render to include the Vercel URL
+3. Set `VASAVIHUB_CORS_ORIGINS` on Render to include the Vercel URL
 
 ### Local Development
 
@@ -147,4 +147,4 @@ VITE_API_URL=https://your-app.onrender.com npm run dev
 |------|---------|
 | `render.yaml` | Render Blueprint — web service + persistent disk |
 | `render-startup.sh` | Startup script — seeds DB, starts uvicorn |
-| `apps/api/main.py` | Updated — configurable CORS via `SUTRA_CORS_ORIGINS` |
+| `apps/api/main.py` | Updated — configurable CORS via `VASAVIHUB_CORS_ORIGINS` |

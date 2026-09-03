@@ -1,6 +1,6 @@
 # Database
 
-Complete database documentation for the Sūtra Smart Campus system.
+Complete database documentation for the VasaviHub Smart Campus system.
 
 ## Database Technology
 

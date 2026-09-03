@@ -5,7 +5,7 @@ How the codebase is organized and how to work on it.
 ## Repository Structure
 
 ```
-sutra-main/
+vasavihub-main/
 ├── apps/
 │   ├── api/                    # Python/FastAPI backend
 │   │   ├── main.py             # FastAPI app, HTTP endpoints

@@ -154,7 +154,7 @@ def build_calendar(
             items.append(CalendarItem(
                 id=f"calendar:{row['id']}", kind="calendar", title=row["title"], date=row["date"],
                 start_time=row["start_time"], end_time=row["end_time"], status="confirmed",
-                source=row["source"] or "Sūtra personal calendar", receipt_ids=receipt_ids,
+                source=row["source"] or "VasaviHub personal calendar", receipt_ids=receipt_ids,
             ))
 
         reminder_rows = session.execute(text(
@@ -166,7 +166,7 @@ def build_calendar(
             items.append(CalendarItem(
                 id=f"reminder:{row['id']}", kind="reminder", title=row["message"],
                 date=normalized[:10], start_time=normalized[11:16] or None,
-                status="reminder", source="Sūtra reminder",
+                status="reminder", source="VasaviHub reminder",
                 receipt_ids=reminder_receipts.get(normalized[:16], []),
             ))
 

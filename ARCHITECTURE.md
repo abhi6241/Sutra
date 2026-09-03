@@ -1,10 +1,10 @@
 # Architecture
 
-Technical architecture of the Sūtra Smart Campus Multi-Agent Orchestrator.
+Technical architecture of the VasaviHub Smart Campus Multi-Agent Orchestrator.
 
 ## System Overview
 
-Sūtra is a **multi-agent orchestration system** that decomposes student questions into parallel specialist agent tasks, executes them against real campus data, detects conflicts, gates write actions for human approval, and streams every execution step to the frontend in real time.
+VasaviHub is a **multi-agent orchestration system** that decomposes student questions into parallel specialist agent tasks, executes them against real campus data, detects conflicts, gates write actions for human approval, and streams every execution step to the frontend in real time.
 
 **Architecture pattern:** Event-driven multi-agent pipeline with human-in-the-loop, built on LangGraph's StateGraph.
 

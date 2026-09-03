@@ -137,7 +137,7 @@ async def main() -> None:
         ("s22", "services", "add_to_calendar", "Add the confirmed Saturday workshop to the calendar.", ["s13"], False,
          {"student_id": ABHIRAM, "title": "Placement Prep Workshop (Saturday Batch)",
           "date": "2026-08-15", "start_time": "10:00", "end_time": "12:00",
-          "source": "Sūtra capability tour", "actor": ABHIRAM}),
+          "source": "VasaviHub capability tour", "actor": ABHIRAM}),
         ("s23", "services", "create_reminder", "Create a one-hour-before workshop reminder.", ["s22"], False,
          {"student_id": ABHIRAM, "message": "Placement Prep Workshop starts in one hour.",
           "remind_at": "2026-08-15 09:00", "actor": ABHIRAM}),
@@ -282,7 +282,7 @@ async def main() -> None:
     tool_names = sorted({step[2] for step in steps})
     emit(EventType.RUN_FINISHED, agent="synthesizer", payload={
         "answer": (
-            "Sūtra verified all 24 registered campus tools across Academics, Placements, Events, "
+            "VasaviHub verified all 24 registered campus tools across Academics, Placements, Events, "
             "Policies and Campus Services. Independent checks ran in parallel; the Academic Agent "
             "flagged the Thursday clash; three externally visible actions waited for recorded human "
             "approval; and every committed write returned an audit receipt."

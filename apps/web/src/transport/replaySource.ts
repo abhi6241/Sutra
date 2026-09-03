@@ -189,16 +189,16 @@ export class ReplaySource implements EventTransport {
  * Recorded runs, from wherever they happen to live.
  *
  * Normally fetched from /fixtures/. The standalone build inlines them onto
- * `window.__SUTRA_FIXTURES__` instead, so the whole cockpit runs from a single
+ * `window.__VASAVIHUB_FIXTURES__` instead, so the whole cockpit runs from a single
  * HTML file with no server — which is the demo's last line of defence if the
  * venue's network, the laptop, or the backend gives out.
  */
 declare global {
-  interface Window { __SUTRA_FIXTURES__?: Record<string, string> }
+  interface Window { __VASAVIHUB_FIXTURES__?: Record<string, string> }
 }
 
 export async function loadFixture(name: string): Promise<AgentEvent[]> {
-  const inlined = typeof window !== 'undefined' ? window.__SUTRA_FIXTURES__?.[name] : undefined
+  const inlined = typeof window !== 'undefined' ? window.__VASAVIHUB_FIXTURES__?.[name] : undefined
   const text = inlined ?? await (async () => {
     const res = await fetch(`/fixtures/${name}`)
     if (!res.ok) throw new Error(`fixture ${name}: ${res.status}`)

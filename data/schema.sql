@@ -1,4 +1,4 @@
--- Smart Campus schema for Sūtra (AgentX 2026). SQLite.
+-- Smart Campus schema for VasaviHub (AgentX 2026). SQLite.
 -- Matches packages/contracts/actions.py (PendingAction) and the tools/
 -- registry's write-tool contract: every write also inserts a `receipts` row.
 

@@ -19,5 +19,5 @@ if [ ! -d /app/chroma_db ] || [ -z "$(ls -A /app/chroma_db 2>/dev/null)" ]; then
   python -c "from apps.api.rag.ingest_docs import ingest_all; ingest_all()" 2>/dev/null || echo "RAG ingestion skipped (non-fatal)"
 fi
 
-echo "Starting Sūtra backend on port ${PORT:-8000}..."
+echo "Starting VasaviHub backend on port ${PORT:-8000}..."
 exec uvicorn apps.api.main:app --host 0.0.0.0 --port "${PORT:-8000}"

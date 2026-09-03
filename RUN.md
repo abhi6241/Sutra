@@ -1,6 +1,6 @@
 # Running the Project
 
-Step-by-step guide to get Sūtra running locally, including virtual environment setup.
+Step-by-step guide to get VasaviHub running locally, including virtual environment setup.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ Step-by-step guide to get Sūtra running locally, including virtual environment 
 
 ```bash
 git clone <repo-url>
-cd sutra-main
+cd vasavihub-main
 ```
 
 ## 2. Create and Activate a Virtual Environment

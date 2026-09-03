@@ -1,6 +1,6 @@
 # Deployment
 
-Deployment documentation for the Sūtra Smart Campus system.
+Deployment documentation for the VasaviHub Smart Campus system.
 
 ## Deployment Options
 

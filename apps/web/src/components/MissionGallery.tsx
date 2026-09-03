@@ -1,5 +1,5 @@
 /**
- * What Sūtra can actually do.
+ * What VasaviHub can actually do.
  *
  * Redesigned with a polished gradient hero, better card styling, and improved
  * visual hierarchy while preserving all existing functionality.
@@ -136,7 +136,7 @@ export function MissionGallery() {
               fontSize: 28, lineHeight: '35px', margin: '0 0 10px', maxWidth: 600,
               letterSpacing: '-0.02em',
             }}>
-              Start with a goal. Sūtra assembles the campus around it.
+              Start with a goal. VasaviHub assembles the campus around it.
             </h1>
             <p style={{
               maxWidth: 630, fontSize: 14, lineHeight: '22px',
@@ -147,7 +147,7 @@ export function MissionGallery() {
             </p>
           </div>
 
-          <div aria-label="Sūtra safeguards" style={{
+          <div aria-label="VasaviHub safeguards" style={{
             flex: '0 1 210px', minWidth: 190, display: 'grid', gap: 8,
           }}>
             <Promise icon={Network} title="Agents collaborate" detail="Parallel when independent" />
@@ -156,7 +156,7 @@ export function MissionGallery() {
         </div>
 
         {/* How it works steps */}
-        <div aria-label="How a Sūtra mission works" style={{
+        <div aria-label="How a VasaviHub mission works" style={{
           display: 'grid', gridTemplateColumns: 'repeat(4, minmax(110px, 1fr))',
           marginTop: 20, borderTop: '1px solid color-mix(in srgb, var(--accent) 15%, var(--line))',
           paddingTop: 16,
@@ -189,7 +189,7 @@ export function MissionGallery() {
         gap: 16, margin: '0 2px 14px',
       }}>
         <div>
-          <div className="eyebrow" style={{ color: 'var(--ink-600)' }}>What can Sūtra do?</div>
+          <div className="eyebrow" style={{ color: 'var(--ink-600)' }}>What can VasaviHub do?</div>
           <div style={{ fontSize: 12, color: 'var(--ink-400)', marginTop: 3 }}>
             Choose a mission to place it in the composer, then edit it however you like.
           </div>

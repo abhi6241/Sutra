@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useStore } from '../state/store'
 import type { InboxItem, InboxResponse } from '../types/inbox'
 
-const READ_KEY = 'sutra-inbox-read'
+const READ_KEY = 'vasavihub-inbox-read'
 
 export function InboxDrawer({
   data, loading, error, onClose, onRefresh,

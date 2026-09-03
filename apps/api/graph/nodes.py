@@ -473,7 +473,7 @@ async def planner_node(state: dict) -> dict:
         # listening. No steps means nothing to orchestrate, so reply and stop.
         if not parsed.get("steps"):
             reply = str(parsed.get("reply") or "").strip() or (
-                f"I'm Sūtra, your campus assistant. {CAPABILITIES} What would you like to do?"
+                f"I'm VasaviHub, your campus assistant. {CAPABILITIES} What would you like to do?"
             )
             await _emit(run_id, EventType.AGENT_THINKING, agent="planner", payload={
                 "detail": "conversational message — no agent work required", "conversational": True,
