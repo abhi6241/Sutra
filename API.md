@@ -19,7 +19,7 @@ Start a new conversation turn. Returns a `run_id` for the event stream and a `th
 ```json
 {
   "message": "Check my Google internship eligibility",
-  "student_id": "1602-23-733-042",
+  "student_id": "1602-24-735-066",
   "role": "student",
   "thread_id": null
 }
@@ -28,7 +28,7 @@ Start a new conversation turn. Returns a `run_id` for the event stream and a `th
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `message` | `str` | Yes | The student's question or request |
-| `student_id` | `str` | Yes | Roll number (e.g., `1602-23-733-042`) |
+| `student_id` | `str` | Yes | Roll number (e.g., `1602-24-735-066`) |
 | `role` | `str` | No | `student` (default), `faculty`, or `admin` |
 | `thread_id` | `str \| null` | No | Pass the returned `thread_id` from a previous turn to maintain conversation context |
 

@@ -430,5 +430,5 @@ See [SECURITY.md](SECURITY.md) for the full security analysis.
 4. **`tool.retry` / `tool.fallback` node attribution** — may carry wrong `node_id` in parallel execution
 5. **IPv6 forced off** — network-specific workaround, not a protocol decision
 6. **No deployment infrastructure** — no Docker, CI/CD, or production configuration
-7. **Hardcoded student ID** — frontend uses `1602-23-733-042` (Ananya Reddy) as the only user
+7. **Hardcoded student ID** — frontend uses `1602-24-735-066` (V. Abhiram) as the only user
 8. **Mock LLM fragility** — mock dispatches on substring matching in system prompts; prompt rewording breaks mocks

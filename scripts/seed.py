@@ -3,12 +3,13 @@ Seed data/campus.db from data/schema.sql for a Hyderabad autonomous
 engineering college. Deterministic — every run wipes and rebuilds.
 
 The demo scenario (battle plan Section 7) depends on these EXACT rows:
-  - Abhiram Reddy, 3rd yr CSE, CGPA 8.4, 0 backlogs, roll 1602-24-735-066
-  - Ananya's DBMS Lab attendance: 26/37 classes (~70.3%, below the 75% bar)
-  - Google SDE Intern: min CGPA 8.0, max backlogs 0, CSE+IT -> Ananya PASSES
-  - Goldman Sachs: min CGPA 8.5 -> Ananya FAILS by 0.1
+  - V. Abhiram, 5th yr ECE, CGPA 8.0, 0 backlogs, roll 1602-24-735-066
+  - Abhiram's MPMC Lab attendance: 16/20 classes (80.0%, above the 75% bar)
+  - Google SDE Intern: min CGPA 8.0, max backlogs 0, CSE+IT -> Abhiram FAILS (branch ECE)
+  - Goldman Sachs: min CGPA 8.5 -> Abhiram FAILS by 0.5
+  - Microsoft SDE Intern: min CGPA 7.5, ECE eligible -> Abhiram PASSES
   - "Placement Prep Workshop" Thu 14:00-16:00, 30 seats, 28 taken
-  - Ananya's timetable has DBMS Lab Thu 14:00-16:00 -> direct collision
+  - Abhiram's timetable has Mini Project-II Lab Thu 14:20-16:20 -> direct collision
   - Same workshop, Saturday 10:00-12:00 batch, 30 seats, 28 taken (2 left)
   - Rahul Verma, 2nd yr MECH, CGPA 7.2, 2 backlogs -> fails everything
 
@@ -50,7 +51,7 @@ def build_students():
     ]
     random.seed(42)  # deterministic across re-seeds
     branch_codes = {"CSE": "733", "IT": "734", "ECE": "735", "EEE": "737", "MECH": "736"}
-    used_names = {("Ananya", "Reddy"), ("Rahul", "Verma")}
+    used_names = {("V.", "Abhiram"), ("Rahul", "Verma")}
     n = 1
     while len(students) < 40:
         branch = BRANCHES[n % len(BRANCHES)]

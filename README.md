@@ -197,7 +197,7 @@ See [API.md](API.md) for the complete API reference.
 The system will:
 1. Check your CGPA against Google's criteria (8.0 min, you have 8.4 — eligible)
 2. Find the Placement Prep Workshop on Thursday and Saturday
-3. Detect that Thursday collides with your DBMS Lab
+3. Detect that Thursday collides with your Mini Project-II lab
 4. Compute that attending would drop your attendance below 75%
 5. Revise the plan to register for Saturday instead
 6. Pause for your approval before registering

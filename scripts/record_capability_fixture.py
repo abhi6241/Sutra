@@ -89,21 +89,21 @@ async def main() -> None:
          {"student_id": ABHIRAM}),
         ("s02", "academic", "get_attendance", "Audit attendance across every enrolled course.", [], False,
          {"student_id": ABHIRAM}),
-        ("s03", "academic", "compute_attendance_eligibility", "Calculate the DBMS Lab attendance recovery path.", ["s02"], False,
-         {"student_id": ABHIRAM, "course_id": "CS301L"}),
+        ("s03", "academic", "compute_attendance_eligibility", "Calculate the MPMC Lab attendance position.", ["s02"], False,
+         {"student_id": ABHIRAM, "course_id": "EC301L"}),
         ("s04", "academic", "check_schedule_conflict", "Check the Thursday workshop against the class timetable.", ["s01"], False,
          {"student_id": ABHIRAM, "day_of_week": "Thursday", "start_time": "14:00", "end_time": "16:00"}),
         ("s05", "academic", "recommend_electives", "Recommend electives related to machine learning.", [], False,
          {"student_id": ABHIRAM, "interest": "machine learning"}),
         # Placement
-        ("s06", "placement", "list_companies", "Find companies currently open to CSE students.", [], False,
-         {"branch": "CSE"}),
-        ("s07", "placement", "check_placement_eligibility", "Verify Google eligibility criterion by criterion.", [], False,
-         {"student_id": ABHIRAM, "company_id": "google"}),
+        ("s06", "placement", "list_companies", "Find companies currently open to ECE students.", [], False,
+         {"branch": "ECE"}),
+        ("s07", "placement", "check_placement_eligibility", "Verify Microsoft eligibility criterion by criterion.", [], False,
+         {"student_id": ABHIRAM, "company_id": "microsoft"}),
         ("s08", "placement", "analyze_resume", "Audit the resume for evidence gaps.", [], False,
-         {"student_id": ABHIRAM, "resume_text": "CSE student. ML project with GitHub portfolio, internship experience, and coding-club leadership."}),
-        ("s09", "placement", "get_prep_plan", "Build a two-week Google interview preparation plan.", ["s07"], False,
-         {"student_id": ABHIRAM, "company_id": "google"}),
+         {"student_id": ABHIRAM, "resume_text": "ECE student. Embedded systems project with GitHub portfolio, internship experience, and coding-club leadership."}),
+        ("s09", "placement", "get_prep_plan", "Build a two-week Microsoft interview preparation plan.", ["s07"], False,
+         {"student_id": ABHIRAM, "company_id": "microsoft"}),
         # Events
         ("s10", "events", "search_events", "Discover upcoming AI and placement events.", [], False,
          {"query": "AI workshops"}),
@@ -123,14 +123,14 @@ async def main() -> None:
          {"student_id": ABHIRAM}),
         ("s17", "services", "library_loans", "Review active library loans and due dates.", [], False,
          {"student_id": ABHIRAM}),
-        ("s18", "services", "renew_book", "Renew the active database textbook loan.", ["s17"], False,
-         {"student_id": ABHIRAM, "book_title": "Database System Concepts", "actor": ABHIRAM}),
+        ("s18", "services", "renew_book", "Renew the active microprocessors textbook loan.", ["s17"], False,
+         {"student_id": ABHIRAM, "book_title": "Microprocessors and Microcontrollers", "actor": ABHIRAM}),
         ("s19", "services", "draft_email", "Draft a concise attendance-support email.", ["s03", "s14"], False,
-         {"to": "advisor.cse@vasavi.ac.in", "subject": "DBMS Lab attendance recovery plan",
-          "body": "I am following the calculated recovery plan for DBMS Lab and request guidance on the applicable condonation process."}),
+         {"to": "advisor.ece@vasavi.ac.in", "subject": "MPMC Lab attendance position",
+          "body": "I am following the calculated attendance position for MPMC Lab and request guidance on the applicable process."}),
         ("s20", "services", "send_email", "Send the attendance-support email after approval.", ["s19"], True,
-         {"to": "advisor.cse@vasavi.ac.in", "subject": "DBMS Lab attendance recovery plan",
-          "body": "I am following the calculated recovery plan for DBMS Lab and request guidance on the applicable condonation process."}),
+         {"to": "advisor.ece@vasavi.ac.in", "subject": "MPMC Lab attendance position",
+          "body": "I am following the calculated attendance position for MPMC Lab and request guidance on the applicable process."}),
         ("s21", "services", "file_grievance", "File a hostel Wi-Fi grievance after approval.", ["s16"], True,
          {"student_id": ABHIRAM, "category": "hostel-network",
           "description": "Wi-Fi in B-Block has been unavailable repeatedly during evening study hours."}),
@@ -143,7 +143,7 @@ async def main() -> None:
           "remind_at": "2026-08-15 09:00", "actor": ABHIRAM}),
         ("s24", "services", "escalate_to_human", "Create a safe human handoff for the attendance case.", ["s03", "s14"], False,
          {"student_id": ABHIRAM,
-          "summary": "Please review the DBMS Lab recovery plan and advise whether condonation paperwork is needed.",
+          "summary": "Please review the MPMC Lab attendance position and advise on next steps.",
           "actor": ABHIRAM}),
     ]
 
@@ -219,7 +219,7 @@ async def main() -> None:
     # not counted among the 24 registry tools.
     clash = jsonable(results["s04"])
     impact = jsonable(await asyncio.to_thread(
-        academic.project_attendance_impact, ABHIRAM, "CS301L", 1,
+        academic.project_attendance_impact, ABHIRAM, "EC309", 1,
     ))
     emit(EventType.SCHEDULE_CHECKED, node_id="s13", agent="academic", payload={
         "event_id": "evt_workshop_thu", "event_title": "Placement Prep Workshop",
@@ -229,11 +229,11 @@ async def main() -> None:
     emit(EventType.CONFLICT_DETECTED, agent="conflict_arbiter", payload={
         "conflicts": [{
             "type": "SCHEDULE_COLLISION", "step_id": "s13",
-            "detail": "The Thursday workshop overlaps DBMS Lab; attendance is already below 75%.",
+            "detail": "The Thursday workshop overlaps Mini Project-II lab; attendance stays above 75%.",
             "evidence": {
                 "event": {"id": "evt_workshop_thu", "title": "Placement Prep Workshop",
                           "day": "Thursday", "start": "14:00", "end": "16:00", "seats_remaining": 2},
-                "collides_with": {"course_id": "CS301L", "session_type": "lab", "detail": clash.get("detail")},
+                "collides_with": {"course_id": "EC309", "session_type": "lab", "detail": clash.get("detail")},
                 "attendance_impact": impact,
             },
         }],

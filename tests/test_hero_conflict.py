@@ -38,11 +38,11 @@ def _no_mock_conflict(monkeypatch):
 
 # --- The evidence, at the tool level ---
 
-def test_thursday_workshop_really_does_collide_with_the_dbms_lab():
+def test_thursday_workshop_really_does_collide_with_the_mini_project_lab():
     """The clash is a fact about the seeded timetable, not a narrative device."""
     conflict = academic.check_schedule_conflict(ABHIRAM, "Thursday", "14:00", "16:00")
     assert conflict.has_conflict
-    assert conflict.conflicting_course_id == "CS301L"
+    assert conflict.conflicting_course_id == "EC309"
 
 
 def test_saturday_batch_is_actually_free():
@@ -52,11 +52,11 @@ def test_saturday_batch_is_actually_free():
 
 
 def test_attendance_impact_is_computed_not_asserted():
-    impact = academic.project_attendance_impact(ABHIRAM, "CS301L", sessions_missed=1)
-    assert impact.current_pct == pytest.approx(70.27, abs=0.01)
-    assert impact.projected_pct == pytest.approx(68.42, abs=0.01)
+    impact = academic.project_attendance_impact(ABHIRAM, "EC309", sessions_missed=1)
+    assert impact.current_pct == pytest.approx(80.0, abs=0.01)
+    assert impact.projected_pct == pytest.approx(76.19, abs=0.01)
     assert impact.delta_pct < 0
-    assert impact.already_below, "70.3% is under the 75% bar before the clash"
+    assert not impact.already_below, "80.0% stays above the 75% bar before the clash"
 
 
 # --- End to end through the real graph, with no MOCK_CONFLICT ---
@@ -101,9 +101,9 @@ async def test_conflict_carries_checkable_evidence():
 
     conflict = next(e for e in events if e["type"] == "conflict.detected")
     evidence = conflict["payload"]["conflicts"][0]["evidence"]
-    assert evidence["collides_with"]["course_id"] == "CS301L"
-    assert evidence["attendance_impact"]["current_pct"] == pytest.approx(70.27, abs=0.01)
-    assert evidence["attendance_impact"]["projected_pct"] == pytest.approx(68.42, abs=0.01)
+    assert evidence["collides_with"]["course_id"] == "EC309"
+    assert evidence["attendance_impact"]["current_pct"] == pytest.approx(80.0, abs=0.01)
+    assert evidence["attendance_impact"]["projected_pct"] == pytest.approx(76.19, abs=0.01)
 
     # and the raw checks were shown on the wire before the verdict
     assert _first(events, "schedule.checked") < _first(events, "conflict.detected")

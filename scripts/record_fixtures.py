@@ -14,7 +14,7 @@ Outputs into fixtures/:
     golden_reject.jsonl    human REJECTS the approval; nothing downstream is written
 
 golden_clean uses a read-only goal on purpose. Any goal that registers for the
-placement workshop now collides with the DBMS lab for real, so "clean" has to
+placement workshop now collides with the Mini Project-II lab for real, so "clean" has to
 mean "asked for nothing that writes" rather than "the conflict flag was off".
 """
 import asyncio
@@ -31,13 +31,13 @@ os.environ["MOCK_LLM"] = "1"
 
 FIXTURES = ROOT / "fixtures"
 ABHIRAM = "1602-24-735-066"
-HERO = ("I'm a third-year CSE student. Am I eligible for the Google internship? "
+HERO = ("I'm a fifth-year ECE student. Am I eligible for the Microsoft internship? "
         "If yes, register me for the placement workshop, add it to my calendar, "
         "and remind me an hour before.")
 # A read-only question. Needed as its own goal now that the Thursday conflict is
 # detected from real timetable data: any goal that registers for the workshop
 # WILL collide, so a conflict-free trace cannot be recorded from HERO.
-READONLY = ("I'm a third-year CSE student. Am I eligible for the Google internship, "
+READONLY = ("I'm a fifth-year ECE student. Am I eligible for the Microsoft internship, "
             "and what attendance do I need to sit for exams?")
 
 

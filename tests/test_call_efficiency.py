@@ -26,34 +26,34 @@ def test_eligibility_summary_states_verdict_and_unmet_criteria():
     data = {
         "is_eligible": False, "company_id": "goldman",
         "breakdown": [
-            {"criterion": "CGPA", "required": ">= 8.5", "actual": "8.4", "passed": False},
+            {"criterion": "CGPA", "required": ">= 8.5", "actual": "8.0", "passed": False},
             {"criterion": "Backlogs", "required": "<= 0", "actual": "0", "passed": True},
         ],
     }
     text = _describe_tool_result("check_placement_eligibility", data, "ok")
     assert "not eligible" in text.lower()      # the verdict, unambiguously
-    assert "8.5" in text and "8.4" in text     # exact figures preserved
+    assert "8.5" in text and "8.0" in text     # exact figures preserved
     assert "Backlogs" not in text              # only the failing criterion is called out
 
 
 def test_eligible_summary_says_so_without_hedging():
     data = {
-        "is_eligible": True, "company_id": "google",
-        "breakdown": [{"criterion": "CGPA", "required": ">= 8.0", "actual": "8.4", "passed": True}],
+        "is_eligible": True, "company_id": "microsoft",
+        "breakdown": [{"criterion": "CGPA", "required": ">= 7.5", "actual": "8.0", "passed": True}],
     }
     text = _describe_tool_result("check_placement_eligibility", data, "ok")
     assert "eligible" in text.lower() and "not eligible" not in text.lower()
-    assert "8.4" in text
-    assert "Google" in text, "company slug should be humanised, not printed raw"
+    assert "8.0" in text
+    assert "Microsoft" in text, "company slug should be humanised, not printed raw"
 
 
 def test_attendance_summary_preserves_exact_numbers():
-    data = {"course_id": "CS301L", "current_pct": 70.3, "classes_attended": 26,
-            "classes_held": 37, "is_eligible": False, "classes_needed_for_75": 19}
+    data = {"course_id": "EC301L", "current_pct": 80.0, "classes_attended": 16,
+            "classes_held": 20, "is_eligible": True, "classes_needed_for_75": 0}
     text = _describe_tool_result("compute_attendance_eligibility", data, "ok")
-    assert "70.3%" in text
-    assert "26" in text and "37" in text and "19" in text
-    assert "CS301L" in text
+    assert "80.0%" in text
+    assert "16" in text and "20" in text
+    assert "EC301L" in text
 
 
 def test_degraded_result_is_flagged_not_dressed_up():

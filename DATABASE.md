@@ -199,20 +199,20 @@ No explicit indexes beyond primary keys and the UNIQUE constraint on `event_regi
 
 | Student | Branch | Year | CGPA | Backlogs | Roll |
 |---------|--------|------|------|----------|------|
-| Ananya Reddy | CSE | 3 | 8.4 | 0 | 1602-23-733-042 |
+| V. Abhiram | ECE | 5 | 8.0 | 0 | 1602-24-735-066 |
 | Rahul Verma | MECH | 2 | 7.2 | 2 | 1602-24-736-018 |
 
 ### Key Seed Data
 
 - **40 students** (2 exact + 38 generated with `random.seed(42)`)
-- **8 courses** (CSE 3rd year focus)
-- **Ananya's timetable:** DBMS Lab Thu 14:00-16:00 (the collision anchor)
-- **Ananya's attendance:** DBMS Lab 26/37 (~70.3%, below 75% bar)
+- **15 courses** (ECE 5th year focus + MECH)
+- **Abhiram's timetable:** 5 labs — IC Lab Tue 10:40-12:40, ADC Lab Thu 10:40-12:40, Mini Project-II Thu 14:20-16:20 (the collision anchor), MPMC Lab Fri 10:40-12:40, ECA Sat 14:20-16:20
+- **Abhiram's attendance:** MPMC Lab 16/20 (80.0%, above 75% bar)
 - **8 companies:** Google (min CGPA 8.0), Goldman (8.5), Microsoft (7.5), TCS (6.0), Infosys (6.5), Amazon (7.8), Deloitte (7.0), Bosch (6.8)
 - **12 events:** Placement workshops (Thu + Sat), AI/ML workshops, hackathon, clubs, career fair
 - **8 clubs:** Technical and cultural
-- **Ananya's hostel:** B-Block Room 214, no-dues = 1
-- **Ananya's library loan:** "Database System Concepts", due 2026-08-20
+- **Abhiram's hostel:** B-Block Room 214, no-dues = 1
+- **Abhiram's library loan:** "Microprocessors and Microcontrollers", due 2026-08-20
 
 ## Database Access Layer
 

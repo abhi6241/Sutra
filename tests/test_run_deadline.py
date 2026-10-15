@@ -83,7 +83,7 @@ async def test_revision_timeout_uses_verified_conflict_free_event(monkeypatch):
         "run_id": "revision-deadline",
         "goal": "Check Google eligibility, register me, add it to my calendar and remind me",
         "student_id": "1602-24-735-066",
-        "critic_feedback": "[SCHEDULE_COLLISION] Thursday overlaps DBMS Lab",
+        "critic_feedback": "[SCHEDULE_COLLISION] Thursday overlaps Mini Project-II lab",
         "iteration": 0,
         "plan": Plan(goal="original", steps=[
             Step(id="s1", agent="placement", task="Check Google eligibility"),

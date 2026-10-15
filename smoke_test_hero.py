@@ -1,5 +1,5 @@
 """
-The hero demo scenario end-to-end: Ananya asks about Google eligibility +
+The hero demo scenario end-to-end: Abhiram asks about Microsoft eligibility +
 workshop registration. Confirms the graph uses REAL tools (not hallucinated
 output) and, ideally, that the schedule collision conflict fires.
 Run: python smoke_test_hero.py
@@ -17,7 +17,7 @@ ABHIRAM = "1602-24-735-066"
 async def main():
     run_id = "hero-" + uuid.uuid4().hex[:6]
     config = {"configurable": {"thread_id": run_id}}
-    goal = ("I'm a third-year CSE student. Am I eligible for the Google internship? "
+    goal = ("I'm a fifth-year ECE student. Am I eligible for the Microsoft internship? "
             "If yes, register me for the placement workshop, add it to my calendar, "
             "and remind me an hour before.")
 

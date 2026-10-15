@@ -11,7 +11,7 @@ def test_calendar_projects_real_courses_but_no_unapproved_event():
     calendar = build_calendar(
         ABHIRAM, range_start=date(2026, 8, 10), range_end=date(2026, 8, 16),
     )
-    assert any(item.kind == "course" and item.metadata.get("course_id") == "CS301L" for item in calendar.items)
+    assert any(item.kind == "course" and item.metadata.get("course_id") == "EC301L" for item in calendar.items)
     assert not any(item.kind == "event" and item.metadata.get("event_id") == "evt_workshop_sat" for item in calendar.items)
     assert staged.description
 

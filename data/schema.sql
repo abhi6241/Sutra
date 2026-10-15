@@ -3,7 +3,7 @@
 -- registry's write-tool contract: every write also inserts a `receipts` row.
 
 CREATE TABLE IF NOT EXISTS students (
-    id TEXT PRIMARY KEY,               -- roll number, e.g. 1602-23-733-042
+    id TEXT PRIMARY KEY,               -- roll number, e.g. 1602-24-735-066
     name TEXT NOT NULL,
     branch TEXT NOT NULL,              -- CSE, IT, ECE, EEE, MECH
     year INTEGER NOT NULL,             -- 1-4

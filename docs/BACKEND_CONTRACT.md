@@ -185,12 +185,12 @@ don't count the failure twice.
 ```jsonc
 // tool.called
 { "tool": "check_placement_eligibility",
-  "args": { "student_id": "1602-23-733-042", "company_id": "google" } }
+  "args": { "student_id": "1602-24-735-066", "company_id": "microsoft" } }
 
 // tool.result   ← carries the structured result in `data`
 { "tool": "check_placement_eligibility", "status": "ok",
   "data": { "is_eligible": true,
-            "breakdown": [ {"criterion":"CGPA","required":">= 8.0","actual":"8.4","passed":true} ] } }
+            "breakdown": [ {"criterion":"CGPA","required":">= 7.5","actual":"8.0","passed":true} ] } }
 { "tool": "…", "status": "degraded", "degradation_reason": "Placement service unavailable…" }
 { "tool": "…", "status": "error", "error": "No seats remaining for Placement Prep Workshop" }
 { "tool": "…", "status": "permission_denied", "required_role": "faculty", "held_role": "student" }
@@ -239,17 +239,17 @@ work, and both arrive *before* `conflict.detected`:
 ```jsonc
 { "event_id": "evt_workshop_thu", "event_title": "Placement Prep Workshop",
   "day": "Thursday", "start": "14:00", "end": "16:00",
-  "has_conflict": true, "conflicting_course_id": "CS301L",
-  "detail": "DBMS Lab (lab) on Thursday 14:00-16:00 overlaps the requested window." }
+  "has_conflict": true, "conflicting_course_id": "EC309",
+  "detail": "Mini Project-II (lab) on Thursday 14:20-16:20 overlaps the requested window." }
 ```
 
 **`attendance.impact.calculated`** · `agent: "academic"` — only when a clash was found
 ```jsonc
-{ "course_id": "CS301L", "course_name": "DBMS Lab",
-  "current_pct": 70.27, "projected_pct": 68.42, "delta_pct": -1.85,
-  "classes_attended": 26, "classes_held": 37, "sessions_missed": 1,
-  "crosses_threshold": false, "already_below": true,
-  "sessions_needed_to_recover": 10 }
+{ "course_id": "EC309", "course_name": "Mini Project-II",
+  "current_pct": 80.0, "projected_pct": 76.19, "delta_pct": -3.81,
+  "classes_attended": 16, "classes_held": 20, "sessions_missed": 1,
+  "crosses_threshold": false, "already_below": false,
+  "sessions_needed_to_recover": 0 }
 ```
 
 **`conflict.detected`** · `agent: "conflict_arbiter"`
@@ -257,14 +257,14 @@ work, and both arrive *before* `conflict.detected`:
 {
   "conflicts": [
     { "type": "SCHEDULE_COLLISION", "step_id": "s2", "step_ids": ["s2"],
-      "detail": "Step s2 registers for 'Placement Prep Workshop' on Thursday 14:00-16:00, which overlaps DBMS Lab (lab)… Attendance in DBMS Lab is 70.27% (26/37) and would fall to 68.42% — already below the 75% bar in Academic Regulations R22 clause 4.2.",
+      "detail": "Step s2 registers for 'Placement Prep Workshop' on Thursday 14:00-16:00, which overlaps Mini Project-II (lab)… Attendance in Mini Project-II is 80.0% (16/20) and would fall to 76.19% — still above the 75% bar in Academic Regulations R22 clause 4.2.",
       "evidence": {
         "event":            { "id": "evt_workshop_thu", "title": "…", "day": "Thursday", "start": "14:00", "end": "16:00", "seats_remaining": 2 },
-        "collides_with":    { "course_id": "CS301L", "session_type": "lab", "detail": "…" },
+        "collides_with":    { "course_id": "EC309", "session_type": "lab", "detail": "…" },
         "attendance_impact": { /* the payload shown above, verbatim */ }
       } }
   ],
-  "rationale": "'Placement Prep Workshop' is scheduled Thursday 14:00-16:00, which is when CS301L meets. Attending it means missing that session, taking DBMS Lab from 70.27% to 68.42% (-1.85). That is already under the 75% required by R22 clause 4.2, so a non-clashing slot should be used instead."
+  "rationale": "'Placement Prep Workshop' is scheduled Thursday 14:00-16:00, which is when EC309 meets. Attending it means missing that session, taking Mini Project-II from 80.0% to 76.19% (-3.81). That stays above the 75% required by R22 clause 4.2, so a non-clashing slot should still be preferred."
 }
 ```
 `evidence` is present **only on deterministic conflicts** — it is the preflight's
@@ -292,8 +292,8 @@ It means *"checked, found nothing"*, **not** *"a conflict was fixed"*.
   "step_id": "s2",
   "agent": "events",          // the specialist (note: event.agent is "approval_gate")
   "tool": "register_event",
-  "args": { "student_id": "1602-23-733-042", "event_id": "evt_workshop_thu" },
-  "description": "Register 1602-23-733-042 for 'Placement Prep Workshop' (2026-08-13 14:00-16:00).",
+  "args": { "student_id": "1602-24-735-066", "event_id": "evt_workshop_thu" },
+  "description": "Register 1602-24-735-066 for 'Placement Prep Workshop' (2026-08-13 14:00-16:00).",
   "risk": "low",              // "low" | "medium"
   "reversible": true,
   "preview": "Placement Prep Workshop — 2026-08-13 14:00-16:00, 2 seat(s) left."

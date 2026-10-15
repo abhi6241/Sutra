@@ -99,9 +99,9 @@ def compute_attendance_eligibility(student_id: str, course_id: str) -> Attendanc
 def _resolve_course(session, student_id: str, course_id: str) -> str:
     """Accept a course NAME where an id was expected.
 
-    The caller is a language model reading an answer that says "DBMS Lab", not
-    a schema that says "CS301L" — so it passes the name, the lookup misses, and
-    the run reports "no attendance record for DBMS Lab" in the same breath as
+    The caller is a language model reading an answer that says "Mini Project-II", not
+    a schema that says "EC309" — so it passes the name, the lookup misses, and
+    the run reports "no attendance record for Mini Project-II" in the same breath as
     printing that course's attendance. Resolving the name here is far more
     honest than surfacing a contradiction.
     """
@@ -122,8 +122,8 @@ def _resolve_course(session, student_id: str, course_id: str) -> str:
     for r in candidates:
         if r["name"].strip().lower() == needle:
             return r["course_id"]
-    # Fall back to a containment match ("DBMS" -> "DBMS Lab"), preferring the
-    # shortest name so "DBMS" doesn't silently pick a longer unrelated course.
+    # Fall back to a containment match ("Microprocessors" -> "Microprocessors and Microcontrollers Lab"), preferring the
+    # shortest name so a short needle doesn't silently pick a longer unrelated course.
     partial = sorted(
         (r for r in candidates if needle and (needle in r["name"].lower() or r["name"].lower() in needle)),
         key=lambda r: len(r["name"]),

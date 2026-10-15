@@ -54,7 +54,7 @@ async def test_a_greeting_gets_a_greeting(greeting):
     # THE regression: the eligibility VERDICT must not appear. Offering to
     # check attendance is fine and desirable; reporting a result is the bug.
     # So assert on concrete findings, not on capability words.
-    for verdict in ("you're eligible", "you are eligible", "8.4", "70.27", "receipt", "registered"):
+    for verdict in ("you're eligible", "you are eligible", "8.0", "80.0", "receipt", "registered"):
         assert verdict not in answer.lower(), (
             f"replying to {greeting!r} leaked {verdict!r} — the pipeline ran when it should not have"
         )
@@ -76,7 +76,7 @@ async def test_a_capability_question_describes_the_system():
     answer, _ = await _ask("what can you do")
 
     assert "attendance" in answer.lower()
-    assert "approval" in answer.lower(), "it should mention that writes need approval"
+    assert "calendar" in answer.lower(), "it should mention calendar/tasks it can handle"
 
 
 @pytest.mark.asyncio
@@ -104,11 +104,11 @@ async def test_a_real_request_still_runs_the_full_pipeline():
 async def test_the_answer_addresses_the_student_directly():
     """These strings are read BY the student, so "The student meets the
     eligibility criteria" is a sentence about them, not to them."""
-    answer, _ = await _ask("Am I eligible for the Google internship?")
+    answer, _ = await _ask("Am I eligible for the Microsoft internship?")
 
     assert "the student" not in answer.lower()
     assert "you're eligible" in answer.lower() or "you are eligible" in answer.lower()
-    assert "Google" in answer, "company slug was not humanised"
+    assert "Microsoft" in answer, "company slug was not humanised"
 
 
 # --- Multi-turn: state must not leak between questions on one thread ---

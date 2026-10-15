@@ -147,33 +147,40 @@ async def test_planner_resets_both_channels_on_revision():
 
 # --- The exact demo scenario's ground truth ---
 
-def test_demo_scenario_ananya_passes_google():
+def test_demo_scenario_abhiram_fails_google_by_branch():
     elig = placement.check_placement_eligibility(ABHIRAM, "google")
-    assert elig.is_eligible is True
+    assert elig.is_eligible is False
+    branch = next(c for c in elig.breakdown if c.criterion == "Branch")
+    assert branch.passed is False
 
 
-def test_demo_scenario_ananya_fails_goldman_by_exactly_0_1_cgpa():
+def test_demo_scenario_abhiram_fails_goldman_by_half_cgpa():
     elig = placement.check_placement_eligibility(ABHIRAM, "goldman")
     assert elig.is_eligible is False
     cgpa = next(c for c in elig.breakdown if c.criterion == "CGPA")
     assert cgpa.passed is False
-    assert float(cgpa.required.replace(">= ", "")) - float(cgpa.actual) == pytest.approx(0.1, abs=1e-9)
+    assert float(cgpa.required.replace(">= ", "")) - float(cgpa.actual) == pytest.approx(0.5, abs=1e-9)
 
 
-def test_demo_scenario_thursday_workshop_collides_with_dbms_lab():
+def test_demo_scenario_abhiram_passes_microsoft():
+    elig = placement.check_placement_eligibility(ABHIRAM, "microsoft")
+    assert elig.is_eligible is True
+
+
+def test_demo_scenario_thursday_workshop_collides_with_mini_project_lab():
     thu = next(e for e in events.search_events(query="placement workshop").events
                if e.id == "evt_workshop_thu")
     conflict = academic.check_schedule_conflict(ABHIRAM, thu.day_of_week, thu.start_time, thu.end_time)
     assert conflict.has_conflict is True
-    assert conflict.conflicting_course_id == "CS301L"
+    assert conflict.conflicting_course_id == "EC309"
     assert "lab" in conflict.conflicting_session.lower()
 
 
-def test_demo_scenario_dbms_attendance_below_75_bar():
-    elig = academic.compute_attendance_eligibility(ABHIRAM, "CS301L")
-    assert elig.is_eligible is False
-    assert elig.current_pct < 75.0
-    assert elig.condonation_possible is True  # 65% <= pct < 75%
+def test_demo_scenario_mpmc_attendance_above_75_bar():
+    elig = academic.compute_attendance_eligibility(ABHIRAM, "EC301L")
+    assert elig.is_eligible is True
+    assert elig.current_pct >= 75.0
+    assert elig.condonation_possible is False
 
 
 def test_demo_scenario_saturday_batch_is_the_viable_alternative():

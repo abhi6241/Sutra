@@ -27,25 +27,25 @@ def test_registry_covers_5_agents():
 
 # --- Academic ---
 
-def test_get_timetable_ananya_has_dbms_lab_thursday():
+def test_get_timetable_abhiram_has_mpmc_lab_friday():
     result = academic.get_timetable(ABHIRAM)
-    lab = next(e for e in result.entries if e.course_id == "CS301L")
-    assert lab.day_of_week == "Thursday"
-    assert lab.start_time == "14:00" and lab.end_time == "16:00"
+    lab = next(e for e in result.entries if e.course_id == "EC301L")
+    assert lab.day_of_week == "Friday"
+    assert lab.start_time == "10:40" and lab.end_time == "12:40"
 
 
-def test_attendance_eligibility_dbms_lab_below_75():
-    elig = academic.compute_attendance_eligibility(ABHIRAM, "CS301L")
-    assert elig.classes_attended == 26
-    assert elig.classes_held == 37
-    assert elig.is_eligible is False
-    assert elig.condonation_possible is True  # >= 65%
+def test_attendance_eligibility_mpmc_lab_above_75():
+    elig = academic.compute_attendance_eligibility(ABHIRAM, "EC301L")
+    assert elig.classes_attended == 16
+    assert elig.classes_held == 20
+    assert elig.is_eligible is True
+    assert elig.condonation_possible is False  # already above 75%
 
 
 def test_schedule_conflict_detects_thursday_collision():
     conflict = academic.check_schedule_conflict(ABHIRAM, "Thursday", "14:00", "16:00")
     assert conflict.has_conflict is True
-    assert conflict.conflicting_course_id == "CS301L"
+    assert conflict.conflicting_course_id == "EC309"
 
 
 def test_schedule_conflict_none_on_free_slot():
@@ -60,17 +60,24 @@ def test_get_attendance_unknown_student_raises():
 
 # --- Placement ---
 
-def test_ananya_eligible_for_google():
+def test_abhiram_ineligible_for_google_by_branch():
     elig = placement.check_placement_eligibility(ABHIRAM, "google")
-    assert elig.is_eligible is True
-    assert all(c.passed for c in elig.breakdown)
+    assert elig.is_eligible is False
+    branch_check = next(c for c in elig.breakdown if c.criterion == "Branch")
+    assert branch_check.passed is False
 
 
-def test_ananya_ineligible_for_goldman_by_cgpa():
+def test_abhiram_ineligible_for_goldman_by_cgpa():
     elig = placement.check_placement_eligibility(ABHIRAM, "goldman")
     assert elig.is_eligible is False
     cgpa_check = next(c for c in elig.breakdown if c.criterion == "CGPA")
     assert cgpa_check.passed is False
+
+
+def test_abhiram_eligible_for_microsoft():
+    elig = placement.check_placement_eligibility(ABHIRAM, "microsoft")
+    assert elig.is_eligible is True
+    assert all(c.passed for c in elig.breakdown)
 
 
 def test_rahul_ineligible_everywhere():
@@ -83,7 +90,9 @@ def test_check_placement_eligibility_is_case_insensitive_on_company_id():
     # An LLM picking a tool arg is as likely to pass "Google" (display name
     # casing) as "google" (the literal id) — must resolve either way.
     elig = placement.check_placement_eligibility(ABHIRAM, "Google")
-    assert elig.is_eligible is True
+    assert elig.is_eligible is False
+    branch_check = next(c for c in elig.breakdown if c.criterion == "Branch")
+    assert branch_check.passed is False
 
 
 def test_list_companies_filters_by_branch():
@@ -141,19 +150,19 @@ def test_recommend_clubs_matches_ml_interest():
 
 # --- Services & Comms ---
 
-def test_get_hostel_info_ananya():
+def test_get_hostel_info_abhiram():
     info = services.get_hostel_info(ABHIRAM)
     assert info.block == "B-Block" and info.no_dues is True
 
 
-def test_library_loans_ananya_has_active_loan():
+def test_library_loans_abhiram_has_active_loan():
     result = services.library_loans(ABHIRAM)
     assert any(not loan.returned for loan in result.loans)
 
 
 def test_renew_book_extends_due_date():
     before = services.library_loans(ABHIRAM).loans[0].due_at
-    result = services.renew_book(ABHIRAM, "Database System Concepts", actor=ABHIRAM)
+    result = services.renew_book(ABHIRAM, "Microprocessors and Microcontrollers", actor=ABHIRAM)
     assert result.new_due_at != before
 
 
@@ -201,14 +210,14 @@ def test_escalate_to_human():
 # --- Tools must tolerate how an LLM addresses them ---
 
 def test_attendance_accepts_a_course_name_not_just_an_id():
-    """The caller reads an answer saying "DBMS Lab", not a schema saying
-    "CS301L". Passing the name used to raise RecordNotFound, so a run reported
-    "no attendance record for DBMS Lab" in the same answer that printed that
+    """The caller reads an answer saying "Microprocessors and Microcontrollers Lab", not a schema saying
+    "EC301L". Passing the name used to raise RecordNotFound, so a run reported
+    "no attendance record" in the same answer that printed that
     course's attendance."""
     from apps.api.tools.academic import compute_attendance_eligibility
 
-    by_id = compute_attendance_eligibility(ABHIRAM, "CS301L")
-    for alias in ("DBMS Lab", "dbms lab", "DBMS", "cs301l"):
+    by_id = compute_attendance_eligibility(ABHIRAM, "EC301L")
+    for alias in ("Microprocessors and Microcontrollers Lab", "microprocessors", "Microcontrollers", "ec301l"):
         assert compute_attendance_eligibility(ABHIRAM, alias).course_id == by_id.course_id
 
 

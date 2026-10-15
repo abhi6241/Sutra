@@ -57,8 +57,8 @@ Documentation of the existing testing strategy.
 
 Tests all 24 tools with deterministic seed data:
 
-- **Academic:** timetable lookup, attendance eligibility (DBMS Lab < 75%), schedule conflict detection
-- **Placement:** Ananya eligible for Google (CGPA 8.4 >= 8.0), ineligible for Goldman (8.4 < 8.5), Rahul ineligible everywhere
+- **Academic:** timetable lookup, attendance eligibility (MPMC Lab 80% >= 75%), schedule conflict detection
+- **Placement:** Abhiram ineligible for Google (branch ECE), ineligible for Goldman (8.0 < 8.5), eligible for Microsoft, Rahul ineligible everywhere
 - **Events:** search, capacity (Thursday has 2 seats), register (pending → approved), idempotency, seat overflow
 - **Services:** hostel info, library loans, renew book, file grievance, draft/send email, calendar, reminder, escalate
 - **LLM tolerance:** tools accept course names not just IDs, ignore filler/unknown categories
@@ -245,5 +245,5 @@ python e2e_check.py           # Full HTTP/SSE layer
 
 - **Deterministic seeding:** `random.seed(42)` in `seed.py` ensures reproducible data
 - **Module-scoped fixtures:** `conftest.py` re-seeds before each test module for isolation
-- **Demo personas:** Ananya Reddy and Rahul Verma have exact, documented properties
+- **Demo personas:** V. Abhiram and Rahul Verma have exact, documented properties
 - **Golden fixtures:** 5 recorded JSONL files serve as regression baselines

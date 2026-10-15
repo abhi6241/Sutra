@@ -203,5 +203,5 @@ Forced off by default. Set `ALLOW_IPV6=1` on networks with working IPv6.
 6. **No logging infrastructure** — no structured logging or log aggregation
 7. **No monitoring** — no metrics, alerting, or observability
 8. **No backup strategy** — no automated database backups
-9. **Single-student UI** — frontend hardcodes student ID `1602-23-733-042`
+9. **Single-student UI** — frontend hardcodes student ID `1602-24-735-066`
 10. **No load balancing** — single-process architecture

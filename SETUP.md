@@ -123,7 +123,7 @@ This creates `data/campus.db` with:
 - 8 companies (Google, Goldman Sachs, Microsoft, TCS, Infosys, Amazon, Deloitte, Bosch)
 - 12 events (workshops, hackathons, club meets)
 - 8 clubs
-- Ananya Reddy's timetable, attendance, and library loans
+- V. Abhiram's timetable, attendance, and library loans
 
 **The seed is deterministic** — every run wipes and rebuilds the database.
 
