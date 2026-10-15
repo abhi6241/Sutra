@@ -486,6 +486,19 @@ async def planner_node(state: dict) -> dict:
                     "pending_approvals": [RESET]}
 
         plan = Plan.from_dict(parsed)
+        # The LLM routinely marks add_to_calendar/create_reminder as
+        # requires_approval=True even though the registry says False (they
+        # execute immediately, no gate). The arbiter then hallucinates a
+        # "permission" conflict from the flag mismatch and forces a replan
+        # that re-executes the same write → duplicate calendar rows.
+        # Registry is truth for explicit-tool steps.
+        try:
+            from apps.api.tools.registry import TOOL_REGISTRY as _REG
+            for _s in plan.steps:
+                if _s.tool and _s.tool in _REG:
+                    _s.requires_approval = bool(_REG[_s.tool].get("requires_approval", False))
+        except Exception:
+            pass
     except Exception as e:
         recovered = await _deterministic_schedule_revision(state) if is_revision else None
         if recovered is not None:
@@ -499,6 +512,25 @@ async def planner_node(state: dict) -> dict:
             detail = "planner LLM timed out; all providers exhausted" if is_timeout else "planner LLM call failed; ending safely without actions"
             await _emit(run_id, EventType.RUN_ERROR, agent="planner",
                         payload={"error": str(e), "detail": detail})
+            # A revision failure happens AFTER earlier steps may already have
+            # committed writes (e.g. add_to_calendar is ungated). Wiping
+            # step_results here and claiming "Nothing was changed" in the
+            # reply hides those commits — the calendar row exists while the
+            # chat insists it doesn't. Preserve prior work on revision and
+            # say so truthfully; only a fresh plan can claim nothing changed.
+            if is_revision:
+                message = (
+                    "I couldn't revise the plan because the reasoning service "
+                    + ("timed out" if is_timeout else "encountered an error")
+                    + ". Any actions already completed in this run are still saved — "
+                    "please check your calendar/actions below. Please try again for the remaining steps."
+                )
+                return {
+                    "plan": state.get("plan"),
+                    "conversational_reply": message,
+                    "plan_version": state.get("plan_version", 0) + 1,
+                    "critic_feedback": None,
+                }
             message = (
                 "I couldn't plan this request because the reasoning service "
                 + ("timed out" if is_timeout else "encountered an error")
@@ -825,7 +857,10 @@ async def conflict_check_node(state: dict) -> dict:
             "schedule collisions, capacity overruns, attendance risk, or permission "
             "problems across these step results. Respond with JSON: "
             '{"conflicts": [{"type": str, "detail": str}], "rationale": str}. '
-            'Empty conflicts list if none found.'
+            'Empty conflicts list if none found. '
+            "Do NOT flag a permission issue merely because a step says "
+            "requires_approval — only flag role denials where a step result "
+            "has status permission_denied."
         )
         try:
             parsed = await call_llm_async(
@@ -1268,11 +1303,18 @@ async def synthesize_node(state: dict) -> dict:
 
     # Conversational turn: the planner already wrote the whole answer, and
     # there are no results, citations or actions to reconcile against it.
+    # Exception: a revision-time planner failure still carries a
+    # conversational_reply, but earlier steps in the SAME run may already
+    # have committed writes (ungated calendar/reminder entries land in
+    # action_log via agents.py). Dropping the ledger here is what produced
+    # "Nothing was changed" next to a real calendar row — ship the ledger.
     direct = state.get("conversational_reply")
     if direct:
+        ledger = state.get("action_log", [])
+        answer = direct + _render_action_log(ledger)
         await _emit(run_id, EventType.RUN_FINISHED, agent="synthesizer",
-                    payload={"answer": direct, "citations": [], "actions": []})
-        return {"final_answer": direct}
+                    payload={"answer": answer, "citations": [], "actions": ledger})
+        return {"final_answer": answer}
 
     # Steps the system did NOT complete must be stated, not quietly omitted —
     # a user who asked for an action deserves to know it didn't happen and why.

@@ -438,6 +438,37 @@ async def run_agent_step(agent_name: str, step: Step, state: dict) -> dict:
                     args = None  # signal: do not execute
 
                 if args is not None:
+                    # A replan re-proposes the same calendar/reminder write
+                    # under a fresh step id. Re-executing it mints a second
+                    # receipt and a duplicate DB row for one user request.
+                    # If this exact ungated write already committed this run,
+                    # reuse it instead of writing again.
+                    try:
+                        from apps.api.tools.registry import TOOL_REGISTRY as _REG2
+                        _needs_gate = bool(_REG2.get(tool_name, {}).get("requires_approval", False))
+                    except Exception:
+                        _needs_gate = True
+                    if not _needs_gate:
+                        for _prior in (state.get("action_log") or []):
+                            if not isinstance(_prior, dict) or _prior.get("outcome") != "executed":
+                                continue
+                            if _prior.get("tool") != tool_name or _prior.get("gated", False):
+                                continue
+                            _pa, _ca = _prior.get("args") or {}, args
+                            if set(_pa) == set(_ca) and all(str(_pa[k]) == str(_ca[k]) for k in _pa):
+                                tool_data = {"receipt_id": _prior.get("receipt_id"), "duplicate_skipped": True,
+                                             "title": _ca.get("title"), "date": _ca.get("date"),
+                                             "start_time": _ca.get("start_time"), "end_time": _ca.get("end_time")}
+                                tool_status = "ok"
+                                await bus.emit(AgentEvent(
+                                    id=uuid.uuid4().hex[:8], run_id=run_id, ts=time.time(), type=EventType.TOOL_RESULT,
+                                    node_id=step.id, agent=agent_name,
+                                    payload={"tool": tool_name, "status": "ok", "data": tool_data,
+                                              "duplicate_of": _prior.get("receipt_id")},
+                                ))
+                                args = None
+                                break
+                if args is not None:
                     await bus.emit(AgentEvent(
                         id=uuid.uuid4().hex[:8], run_id=run_id, ts=time.time(), type=EventType.TOOL_CALLED,
                         node_id=step.id, agent=agent_name, payload={"tool": tool_name, "args": args},
@@ -538,10 +569,11 @@ async def run_agent_step(agent_name: str, step: Step, state: dict) -> dict:
     # silent about the two writes that followed it. Every committed write
     # belongs in the ledger; whether it needed a human is a separate fact.
     receipt = tool_data.get("receipt_id") if isinstance(tool_data, dict) else None
-    if receipt and result["status"] in ("ok", "degraded"):
+    if receipt and result["status"] in ("ok", "degraded") and not (isinstance(tool_data, dict) and tool_data.get("duplicate_skipped")):
         result["_write"] = {
             "approval_id": None, "step_id": step.id, "agent": agent_name,
-            "tool": tool_name, "args": {}, "description": step.task,
+            "tool": tool_name, "args": dict(args) if isinstance(args, dict) else {},
+            "description": step.task,
             "decision": None, "outcome": "executed",
             "receipt_id": receipt, "error": None, "gated": False,
         }
