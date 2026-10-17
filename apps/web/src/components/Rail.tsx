@@ -15,6 +15,7 @@ const GLYPH: Record<string, string> = {
   'tool.retry': '↻', 'tool.fallback': '⇢', 'rag.retrieved': '❝', 'conflict.detected': '⚔',
   'schedule.checked': '⌖', 'attendance.impact.calculated': '%',
   'conflict.resolved': '✓', 'approval.requested': '⏸', 'approval.resolved': '▶',
+  'token.usage': '∑',
   'memory.recall': '◔', 'memory.write': '◉', 'run.finished': '★', 'run.error': '!',
 }
 
@@ -41,6 +42,9 @@ function summarize(e: AgentEvent): string {
     case 'conflict.resolved': return 'arbiter pass — no conflicts'
     case 'approval.requested': return `awaiting human: ${p.description ?? ''}`.slice(0, 90)
     case 'approval.resolved': return `human decision: ${p.decision}`
+    case 'token.usage': return `${Number(p.total_tokens ?? 0).toLocaleString('en-IN')} tokens — ` +
+      `${Number(p.prompt_tokens ?? 0).toLocaleString('en-IN')} in / ${Number(p.completion_tokens ?? 0).toLocaleString('en-IN')} out` +
+      ` · ${p.provider}${p.model ? ` ${p.model}` : ''}${p.estimated ? ' · est.' : ''}`
     case 'memory.recall': return `recalled ${(p.profile_facts ?? []).length} facts, ${(p.recalled ?? []).length} summaries`
     case 'memory.write': return `wrote ${(p.facts_written ?? []).length} durable facts`
     case 'run.finished': return 'answer ready'
@@ -185,6 +189,8 @@ export function Telemetry() {
   const latencies = Object.values(run.steps).map((s) => s.latencyMs).filter((x): x is number => x != null)
   const p50 = latencies.length
     ? [...latencies].sort((a, b) => a - b)[Math.floor(latencies.length / 2)] : 0
+  const fmt = (n: number) => n.toLocaleString('en-IN')
+  const tok = t.tokens
 
   const rows: [string, string][] = [
     ['Elapsed', `${elapsed.toFixed(2)}s`],
@@ -199,6 +205,14 @@ export function Telemetry() {
     ['Plan revisions', `${Math.max(0, run.planVersion - 1)}`],
     ['Arbiter passes', `${run.arbiterPasses.length}`],
   ]
+  if (tok.calls > 0) {
+    rows.push(
+      ['LLM calls', `${tok.calls}`],
+      ['Prompt tokens', fmt(tok.prompt)],
+      ['Completion tokens', fmt(tok.completion)],
+      ['Total tokens', `∑ ${fmt(tok.total)}`],
+    )
+  }
 
   return (
     <div style={{ overflowY: 'auto', height: '100%', padding: 14 }}>
@@ -211,6 +225,11 @@ export function Telemetry() {
           <span className="tnum" style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{v}</span>
         </div>
       ))}
+      {tok.estimated > 0 && (
+        <div style={{ marginTop: 10, fontSize: 11, color: 'var(--ink-400)', lineHeight: '16px' }}>
+          {tok.estimated} of {tok.calls} LLM call{tok.calls === 1 ? '' : 's'} reported no usage and were estimated (~4 chars/token).
+        </div>
+      )}
       {run.notices.length > 0 && (
         <div style={{ marginTop: 16 }}>
           <div className="eyebrow" style={{ marginBottom: 8, color: 'var(--degraded)' }}>

@@ -242,6 +242,9 @@ export function RunScore({ onSeek, presentation = false }: {
             <Metric presentation={presentation} label="Elapsed" value={`${formatElapsed(elapsedMs)} / ${formatElapsed(model.durationMs)}`} />
             <Metric presentation={presentation} label="Peak parallel" value={`${model.peakConcurrency || 0} agents`} />
             <Metric presentation={presentation} label="Tools verified" value={`${observedTools.size} / 24`} />
+            {run.telemetry.tokens.calls > 0 && (
+              <Metric presentation={presentation} label="LLM tokens" value={run.telemetry.tokens.total.toLocaleString('en-IN')} />
+            )}
           </div>
         </div>
         <CapabilityCoverage blocks={model.blocks} presentation={presentation} />

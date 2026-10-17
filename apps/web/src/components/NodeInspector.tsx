@@ -126,6 +126,10 @@ function Facts({ step, run }: { step: StepState; run: ReturnType<typeof useStore
     ],
   ]
   if (step.ragChunks != null) rows.push(['Clauses retrieved', String(step.ragChunks)])
+  if (step.llmCalls) {
+    rows.push(['LLM tokens', `${(step.llmPrompt ?? 0) + (step.llmCompletion ?? 0)} ` +
+      `(${step.llmPrompt} in / ${step.llmCompletion} out, ${step.llmCalls} call${step.llmCalls === 1 ? '' : 's'})`])
+  }
 
   return (
     <dl style={{ margin: '0 0 20px', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '8px 14px' }}>

@@ -130,7 +130,7 @@ Every event has all nine keys, always. Nulls are present, not omitted.
 
 ## 5. Every event type
 
-19 types are actually emitted. `run.started`, `a2a.message`, `token.usage` and
+20 types are actually emitted. `run.started`, `a2a.message` and
 `proactive.alert` exist in the enum but **are never sent** — don't build UI for them.
 
 ### Planning
@@ -179,6 +179,23 @@ created for a registration that was refused.
 
 `node.failed` is **always followed by** `node.finished` with `status:"error"` —
 don't count the failure twice.
+
+### Tokens
+
+**`token.usage`** — **one per successful LLM provider call** (emitted from
+`apps/api/llm/router.py` after the chain resolves). Step-scoped calls carry the
+step's `node_id`; orchestration calls (planner / arbiter / critic / synthesizer)
+have `node_id: null` and only count into run totals.
+
+```jsonc
+{
+  "provider": "groq", "model": "openai/gpt-oss-120b",
+  "prompt_tokens": 123, "completion_tokens": 45, "total_tokens": 168,
+  "estimated": false     // true when the provider omitted usage → chars/4 estimate
+}
+```
+A fallback chain that burned a rate-limited provider bills nothing for it —
+only responses that actually returned are counted.
 
 ### Tools
 

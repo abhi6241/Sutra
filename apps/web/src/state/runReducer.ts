@@ -51,6 +51,12 @@ export interface StepState {
   conflicted: boolean
   awaitingApprovalId?: string
   ragChunks?: number
+  /** Tokens consumed by this step's own LLM calls (from token.usage events
+   *  carrying this node_id). Orchestration calls (planner, arbiter, critic,
+   *  synthesizer) have no node_id and only count into run totals. */
+  llmPrompt?: number
+  llmCompletion?: number
+  llmCalls?: number
 }
 
 export interface ApprovalState extends PendingAction {
@@ -119,6 +125,25 @@ export interface ActionRecord {
   error: string | null
 }
 
+export interface TokenTotals {
+  prompt: number
+  completion: number
+  total: number
+  calls: number
+  /** calls whose counts came from the chars/4 estimate, not provider usage. */
+  estimated: number
+}
+
+export interface TelemetrySnapshot {
+  toolCalls: number
+  retries: number
+  fallbacks: number
+  degraded: number
+  peakConcurrency: number
+  agentsUsed: string[]
+  tokens: TokenTotals
+}
+
 export interface RunState {
   runId: string | null
   status: 'idle' | 'running' | 'awaiting-approval' | 'finished' | 'error'
@@ -158,14 +183,7 @@ export interface RunState {
   notices: Notice[]
   fatalError: string | null
 
-  telemetry: {
-    toolCalls: number
-    retries: number
-    fallbacks: number
-    degraded: number
-    peakConcurrency: number
-    agentsUsed: string[]
-  }
+  telemetry: TelemetrySnapshot
 
   runComplete: boolean
   streamClosed: boolean
@@ -184,7 +202,7 @@ export function initialRunState(): RunState {
     memory: { facts: [], recalled: [], written: [], summary: '' },
     citations: [],
     answer: null, notCompleted: [], actions: [], notices: [], fatalError: null,
-    telemetry: { toolCalls: 0, retries: 0, fallbacks: 0, degraded: 0, peakConcurrency: 0, agentsUsed: [] },
+    telemetry: { toolCalls: 0, retries: 0, fallbacks: 0, degraded: 0, peakConcurrency: 0, agentsUsed: [], tokens: { prompt: 0, completion: 0, total: 0, calls: 0, estimated: 0 } },
     runComplete: false, streamClosed: false, seenEventIds: [], toolOwner: {},
   }
 }
@@ -412,6 +430,39 @@ export function reduce(state: RunState, e: AgentEvent): RunState {
       if (cites.length) {
         const seen = new Set(s.citations.map((c) => `${c.doc_number}#${c.clause}`))
         s.citations = [...s.citations, ...cites.filter((c) => !seen.has(`${c.doc_number}#${c.clause}`))]
+      }
+      return s
+    }
+
+    case 'token.usage': {
+      // One event per successful LLM provider call. Aggregate into run totals
+      // (always — orchestration calls carry no node_id) and attribute to the
+      // step when the call belonged to one.
+      const prompt = Number(p.prompt_tokens ?? 0)
+      const completion = Number(p.completion_tokens ?? 0)
+      const total = Number(p.total_tokens ?? prompt + completion)
+      s.telemetry = {
+        ...s.telemetry,
+        tokens: {
+          prompt: s.telemetry.tokens.prompt + prompt,
+          completion: s.telemetry.tokens.completion + completion,
+          total: s.telemetry.tokens.total + (total || prompt + completion),
+          calls: s.telemetry.tokens.calls + 1,
+          estimated: s.telemetry.tokens.estimated + (p.estimated ? 1 : 0),
+        },
+      }
+      const id = e.node_id
+      if (id && s.steps[id]) {
+        const prev = s.steps[id]
+        s.steps = {
+          ...s.steps,
+          [id]: {
+            ...prev,
+            llmPrompt: (prev.llmPrompt ?? 0) + prompt,
+            llmCompletion: (prev.llmCompletion ?? 0) + completion,
+            llmCalls: (prev.llmCalls ?? 0) + 1,
+          },
+        }
       }
       return s
     }

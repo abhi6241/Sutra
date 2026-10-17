@@ -227,6 +227,13 @@ python diag_graph.py
 
 Read `apps.api.llm.router.CALL_COUNT["total"]` to see how many LLM round-trips a run cost.
 
+### Token Usage
+
+Every successful LLM provider call emits a `token.usage` event (prompts in /
+completions out, per provider). The wire story lives in the Timeline; the Telemetry
+rail aggregates the run's totals. Providers that don't report usage are counted
+with a chars/4 estimate flagged `"estimated": true`.
+
 ### Event Stream Issues
 
 Check the recorded fixtures to verify expected event sequences:

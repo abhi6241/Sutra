@@ -16,9 +16,15 @@ reachable, else Ollama Cloud if OLLAMA_API_KEY is set) -> Anthropic -> OpenAI.
 import asyncio
 import os
 import json
+import threading
+import time as _time
+import uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+from apps.api.bus import bus
+from packages.contracts.events import AgentEvent, EventType
 
 load_dotenv(Path(__file__).resolve().parents[3] / ".env", override=True)
 
@@ -108,6 +114,7 @@ def _call_gemini(system, messages, json_mode):
 
     response = client.models.generate_content(model=GEMINI_MODEL, contents=contents, config=config)
     text = response.text
+    _record_usage("gemini", GEMINI_MODEL, response, _usage_prompt_chars(system, messages), len(text))
     return _parse_json_response(text) if json_mode else text
 
 
@@ -188,6 +195,8 @@ def _call_groq(system, messages, json_mode):
             )
             _exhausted_groq_keys.discard(key)
             text = response.choices[0].message.content
+            _record_usage("groq", GROQ_MODEL, getattr(response, "usage", None),
+                          _usage_prompt_chars(system, messages), len(text))
             return _parse_json_response(text) if json_mode else text
         except Exception as e:
             last_error = e
@@ -230,6 +239,7 @@ def _call_ollama(system, messages, json_mode):
             **kwargs,
         )
         text = response["message"]["content"]
+        _record_usage("ollama", OLLAMA_LOCAL_MODEL, response, _usage_prompt_chars(system, messages), len(text))
         return _parse_json_response(text) if json_mode else text
     except Exception as local_error:
         api_key = os.environ.get("OLLAMA_API_KEY")
@@ -241,6 +251,7 @@ def _call_ollama(system, messages, json_mode):
         )
         response = cloud_client.chat(model=OLLAMA_CLOUD_MODEL, messages=[{"role": "system", "content": system}] + messages, **kwargs)
         text = response["message"]["content"]
+        _record_usage("ollama", OLLAMA_CLOUD_MODEL, response, _usage_prompt_chars(system, messages), len(text))
         return _parse_json_response(text) if json_mode else text
 
 
@@ -283,6 +294,8 @@ def _call_anthropic(system, messages, json_mode):
         messages=messages,
     )
     text = next(b.text for b in response.content if b.type == "text")
+    _record_usage("anthropic", ANTHROPIC_MODEL, getattr(response, "usage", None),
+                  _usage_prompt_chars(system, messages), len(text))
     return _parse_json_response(text) if json_mode else text
 
 
@@ -303,6 +316,8 @@ def _call_openai(system, messages, json_mode):
         **kwargs,
     )
     text = response.choices[0].message.content
+    _record_usage("openai", OPENAI_MODEL, getattr(response, "usage", None),
+                  _usage_prompt_chars(system, messages), len(text))
     return _parse_json_response(text) if json_mode else text
 
 
@@ -312,6 +327,56 @@ def _call_openai(system, messages, json_mode):
 # Instrumentation: how many LLM round-trips a run actually costs. Read by the
 # latency tests to prove the call-count reductions, and cheap enough to leave on.
 CALL_COUNT = {"total": 0}
+
+# Token usage instrumentation. Each chain (`call_llm` runs wholly inside ONE
+# asyncio.to_thread worker thread; nested provider calls are plain sync calls
+# in that same thread) records into a thread-local, which `call_llm_async`
+# harvests and fans out as `token.usage` events. Thread-local (not a module
+# global) because parallel agent branches call LLMs concurrently — a single
+# shared accumulator would interleave records across agents.
+_tls = threading.local()
+
+
+def _reset_thread_usage() -> None:
+    _tls.usage = []
+
+
+def _usage_prompt_chars(system, messages) -> int:
+    return len(system) + sum(len(m.get("content") or "") for m in messages)
+
+
+def _record_usage(provider: str, model: str, usage, prompt_chars: int, completion_chars: int) -> None:
+    """Best-effort per-call token capture. Counts come from the provider's own
+    response when it reports usage; when it doesn't, fall back to a
+    chars/4 ESTIMATE and flag it, so the number is never invented precisely."""
+    records = getattr(_tls, "usage", None)
+    if records is None:
+        return
+
+    prompt = completion = None
+    if provider == "gemini" and usage is not None:
+        meta = getattr(usage, "usage_metadata", None)
+        if meta is not None:
+            prompt = getattr(meta, "prompt_token_count", None)
+            completion = getattr(meta, "candidates_token_count", None)
+    elif provider == "anthropic" and usage is not None:
+        prompt = getattr(usage, "input_tokens", None)
+        completion = getattr(usage, "output_tokens", None)
+    else:  # OpenAI-compatible (Groq, OpenAI) report prompt/completion tokens
+        prompt = getattr(usage, "prompt_tokens", None)
+        completion = getattr(usage, "completion_tokens", None)
+
+    estimated = prompt is None or completion is None
+    if estimated:
+        prompt = max(1, prompt_chars // 4)
+        completion = max(1, completion_chars // 4)
+    records.append({
+        "provider": provider, "model": model,
+        "prompt_tokens": int(prompt or 0),
+        "completion_tokens": int(completion or 0),
+        "total_tokens": int(prompt or 0) + int(completion or 0),
+        "estimated": estimated,
+    })
 
 # Provider clients are cached per process. Constructing one per call meant a
 # fresh TLS handshake every time — measured at ~5.5s of fixed overhead per
@@ -337,9 +402,13 @@ def call_llm(system, messages, json_mode=False):
     json_mode: if True, ask for and parse a JSON response
 
     Returns a str (or dict if json_mode=True). Raises RuntimeError if every
-    configured provider fails.
+    configured provider fails. Successful provider calls record token usage
+    into this thread's `_tls.usage` (harvested by call_llm_async).
     """
     CALL_COUNT["total"] += 1
+    # Per-thread reset: a worker thread is REUSED across chains, and parallel
+    # agent branches each run their chain in its own thread.
+    _tls.usage = []
 
     providers = []
     if os.environ.get("GROQ_API_KEY"):
@@ -372,20 +441,41 @@ def call_llm(system, messages, json_mode=False):
     raise RuntimeError("All LLM providers failed:\n" + "\n".join(errors))
 
 
-async def call_llm_async(system, messages, json_mode=False):
+def _call_llm_with_usage(system, messages, json_mode):
+    """Runs inside the worker thread. Returns (result, this-chain's usage
+    records) so the event loop can emit them without a collapsing-like race:
+    every chain wholly occupies one thread, so thread-local == per-call."""
+    result = call_llm(system, messages, json_mode)
+    return result, list(getattr(_tls, "usage", []))
+
+
+async def call_llm_async(system, messages, json_mode=False, *, run_id=None, agent=None, node_id=None):
     """Run one complete provider chain without allowing it to strand a graph.
 
     asyncio cannot forcibly stop a synchronous SDK call already running in a
     worker thread, but the provider-level HTTP timeouts above ensure that
     worker exits shortly afterward. The graph itself is released immediately,
     records the step as degraded/error, and continues to run.finished.
+
+    run_id/agent/node_id, when supplied, attribute the real token usage this
+    chain consumed: each successful provider response is fanned out as a
+    `token.usage` event on the run's SSE stream. Calls without run_id
+    (warm-up, scripts) capture usage locally but emit nothing.
     """
     try:
-        return await asyncio.wait_for(
-            asyncio.to_thread(call_llm, system, messages, json_mode),
+        result, usage_records = await asyncio.wait_for(
+            asyncio.to_thread(_call_llm_with_usage, system, messages, json_mode),
             timeout=LLM_CALL_TIMEOUT_S,
         )
     except TimeoutError as error:
         raise TimeoutError(
             f"LLM call exceeded the {LLM_CALL_TIMEOUT_S:g}s execution deadline"
         ) from error
+    for record in usage_records:
+        if not run_id:
+            break  # no run to attribute to (warm-up, scripts) — record locally, emit nothing
+        await bus.emit(AgentEvent(
+            id=uuid.uuid4().hex[:8], run_id=run_id, ts=_time.time(),
+            type=EventType.TOKEN_USAGE, agent=agent, node_id=node_id, payload=record,
+        ))
+    return result

@@ -2,9 +2,10 @@
  * Mirrors packages/contracts/events.py.
  *
  * Only event types the backend actually emits are modelled as live.
- * `run.started`, `a2a.message`, `token.usage` and `proactive.alert` are
- * declared in the Python enum but never emitted anywhere in apps/api — the UI
- * must not reserve space for data that never arrives.
+ * `run.started`, `a2a.message` and `proactive.alert` are declared in the
+ * Python enum but never emitted anywhere in apps/api — the UI must not
+ * reserve space for data that never arrives. (`token.usage` IS emitted:
+ * one event per successful LLM call, see runReducer.)
  */
 
 export type EventType =
@@ -109,4 +110,15 @@ export interface RecalledMemory {
   score: number
   thread_id: string
   ts?: number
+}
+
+/** Payload of `token.usage` — one per successful LLM provider call. */
+export interface TokenUsage {
+  provider: string
+  model: string
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  /** true when the provider omitted usage and the count is a chars/4 estimate. */
+  estimated: boolean
 }

@@ -76,6 +76,7 @@ async def write_turn_memory(student_id: str, thread_id: str, user_message: str, 
     try:
         parsed = await call_llm_async(
             EXTRACT_SYSTEM, [{"role": "user", "content": exchange}], json_mode=True,
+            run_id=thread_id, agent="memory",
         )
         for fact in parsed.get("facts", []) or []:
             key, value = fact.get("key"), fact.get("value")
@@ -90,6 +91,7 @@ async def write_turn_memory(student_id: str, thread_id: str, user_message: str, 
     try:
         parsed = await call_llm_async(
             SUMMARIZE_SYSTEM, [{"role": "user", "content": exchange}], json_mode=True,
+            run_id=thread_id, agent="memory",
         )
         summary = (parsed.get("summary") or "").strip()
         if summary:

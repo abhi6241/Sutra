@@ -260,3 +260,144 @@ def test_json_mode_injects_the_word_json_when_absent(monkeypatch, fake_groq):
     router._call_groq("Be terse.", [{"role": "user", "content": "hi"}], True)
     system_text = captured["messages"][0]["content"]
     assert "json" in system_text.lower()
+
+
+# --- Token usage capture ---
+
+def test_groq_usage_recorded_from_provider_response(monkeypatch, fake_groq):
+    """Groq (OpenAI-compatible) returns `usage` on the response; the counts the
+    provider reports must be used verbatim, not estimated."""
+    from types import SimpleNamespace
+
+    monkeypatch.setenv("GROQ_API_KEY", "k1")
+
+    class WithUsage(_FakeGroq._Completions):
+        def create(self, **kwargs):
+            _FakeGroq.calls.append("x")
+            return SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content='{"ok": true}'))],
+                usage=SimpleNamespace(prompt_tokens=123, completion_tokens=45, total_tokens=168),
+            )
+
+    monkeypatch.setattr(_FakeGroq._Chat, "__init__",
+                        lambda self, outer: setattr(self, "completions", WithUsage(outer)))
+
+    router.call_llm("Be terse.", [{"role": "user", "content": "hi"}], True)
+
+    rec = router._tls.usage[0]
+    assert rec["provider"] == "groq"
+    assert rec["prompt_tokens"] == 123
+    assert rec["completion_tokens"] == 45
+    assert rec["total_tokens"] == 168
+    assert rec["estimated"] is False
+
+
+def test_missing_usage_is_estimated_and_flagged(monkeypatch, fake_groq):
+    """A provider that reports no usage must still produce a number — flagged
+    as an estimate so the UI never presents 4 chars/token as provider truth."""
+    monkeypatch.setenv("GROQ_API_KEY", "k1")
+
+    router.call_llm("Be terse.", [{"role": "user", "content": "hi"}], True)
+
+    rec = router._tls.usage[0]
+    assert rec["estimated"] is True
+    assert rec["prompt_tokens"] > 0 and rec["completion_tokens"] > 0
+    assert rec["total_tokens"] == rec["prompt_tokens"] + rec["completion_tokens"]
+
+
+def test_chain_usage_accumulates_across_fallback_providers(monkeypatch, fake_groq):
+    """A chain that fails over (groq errored, gemini answered) records usage for
+    the call that succeeded — one record per successful provider call."""
+    from types import SimpleNamespace
+
+    gemini_usage = SimpleNamespace(usage_metadata=SimpleNamespace(
+        prompt_token_count=10, candidates_token_count=20, total_token_count=30))
+
+    def _boom(system, messages, json_mode):
+        raise RuntimeError("Error code: 429 - rate_limit_exceeded")
+
+    def _gemini_ok(system, messages, json_mode):
+        router._record_usage("gemini", router.GEMINI_MODEL,
+                             SimpleNamespace(usage_metadata=gemini_usage.usage_metadata), 9, 28)
+        return {"ok": True}
+
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "gm")
+    monkeypatch.setenv("OLLAMA_DISABLE", "1")
+    monkeypatch.setattr(router, "_call_groq", _boom)
+    monkeypatch.setattr(router, "_call_gemini", _gemini_ok)
+    monkeypatch.setattr(router, "_call_gemini", _gemini_ok)
+
+    router.call_llm("Be terse.", [{"role": "user", "content": "hi"}], True)
+
+    assert len(router._tls.usage) == 1
+    assert router._tls.usage[0]["provider"] == "gemini"
+    assert router._tls.usage[0]["prompt_tokens"] == 10
+    assert router._tls.usage[0]["completion_tokens"] == 20
+
+
+def test_call_llm_async_emits_token_usage_events(monkeypatch, fake_groq):
+    """Every successful provider call inside a run emits one token.usage event
+    attributed to the run and the node that made the call."""
+    import asyncio
+    from types import SimpleNamespace
+
+    monkeypatch.setenv("GROQ_API_KEY", "k1")
+
+    class WithUsage(_FakeGroq._Completions):
+        def create(self, **kwargs):
+            _FakeGroq.calls.append("x")
+            return SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content='{"ok": true}'))],
+                usage=SimpleNamespace(prompt_tokens=123, completion_tokens=45, total_tokens=168),
+            )
+
+    monkeypatch.setattr(_FakeGroq._Chat, "__init__",
+                        lambda self, outer: setattr(self, "completions", WithUsage(outer)))
+
+    emitted = []
+
+    class _Bus:
+        async def emit(self, event):
+            emitted.append(event)
+
+    monkeypatch.setattr(router, "bus", _Bus())
+
+    async def main():
+        return await router.call_llm_async(
+            "Be terse.", [{"role": "user", "content": "hi"}], True,
+            run_id="run-1", agent="planner", node_id="s1",
+        )
+
+    result = asyncio.run(main())
+    assert result == {"ok": True}
+    assert len(emitted) == 1
+    event = emitted[0]
+    assert event.type.value == "token.usage"
+    assert event.run_id == "run-1"
+    assert event.agent == "planner"
+    assert event.node_id == "s1"
+    assert event.payload["prompt_tokens"] == 123
+    assert event.payload["total_tokens"] == 168
+    assert event.payload["estimated"] is False
+
+
+def test_call_llm_async_without_run_id_records_but_does_not_emit(monkeypatch, fake_groq):
+    """Warm-up and script calls have no run to attribute to — they must not
+    emit orphan events, but must not crash either."""
+    import asyncio
+
+    monkeypatch.setenv("GROQ_API_KEY", "k1")
+
+    emitted = []
+
+    class _Bus:
+        async def emit(self, event):
+            emitted.append(event)
+
+    monkeypatch.setattr(router, "bus", _Bus())
+
+    asyncio.run(router.call_llm_async(
+        "Be terse.", [{"role": "user", "content": "hi"}], True,
+    ))
+    assert emitted == []

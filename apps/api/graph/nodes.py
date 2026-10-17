@@ -466,6 +466,7 @@ async def planner_node(state: dict) -> dict:
     try:
         parsed = await call_llm_async(
             PLANNER_SYSTEM, [{"role": "user", "content": user_message}], json_mode=True,
+            run_id=run_id, agent="planner",
         )
         # Conversational fast path. Spinning up five agents, a conflict arbiter
         # and a critic to answer "hello" is not just wasteful — it produced an
@@ -865,6 +866,7 @@ async def conflict_check_node(state: dict) -> dict:
         try:
             parsed = await call_llm_async(
                 system, [{"role": "user", "content": str(arbiter_input)}], json_mode=True,
+                run_id=run_id, agent="conflict_arbiter",
             )
             llm_conflicts = parsed.get("conflicts", [])
             rationale = parsed.get("rationale", "")
@@ -1226,6 +1228,7 @@ async def critic_node(state: dict) -> dict:
     try:
         parsed = await call_llm_async(
             system, [{"role": "user", "content": str(payload)}], json_mode=True,
+            run_id=run_id, agent="critic",
         )
     except Exception as e:
         # Can't judge without an LLM — default to satisfied rather than looping forever.
@@ -1371,6 +1374,7 @@ async def synthesize_node(state: dict) -> dict:
     try:
         parsed = await call_llm_async(
             system, [{"role": "user", "content": str(payload)}], json_mode=True,
+            run_id=run_id, agent="synthesizer",
         )
         answer = parsed.get("answer", "")
     except Exception as e:

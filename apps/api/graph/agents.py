@@ -379,6 +379,7 @@ async def run_agent_step(agent_name: str, step: Step, state: dict) -> dict:
                 selection_user = f"{session_block}{context_block}{upstream_block}Task: {step.task}"
                 selection = await call_llm_async(
                     selection_system, [{"role": "user", "content": selection_user}], json_mode=True,
+                    run_id=run_id, agent=agent_name, node_id=step.id,
                 )
             tool_name = selection.get("tool") or ""
 
@@ -537,6 +538,7 @@ async def run_agent_step(agent_name: str, step: Step, state: dict) -> dict:
             compose_user = f"{session_block}{context_block}{upstream_block}{tool_block}Task: {step.task}"
             parsed = await call_llm_async(
                 compose_system, [{"role": "user", "content": compose_user}], json_mode=True,
+                run_id=run_id, agent=agent_name, node_id=step.id,
             )
 
             result = {

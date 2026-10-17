@@ -416,3 +416,41 @@ describe('robustness guards', () => {
     expect(state.memory.written.length).toBeGreaterThan(0)
   })
 })
+
+describe('token.usage aggregation', () => {
+  const mk = (id: string, payload: Record<string, unknown>, node_id: string | null, agent: string) => ({
+    id, run_id: 'r1', ts: 1, type: 'token.usage', node_id, agent,
+    payload, latency_ms: null, parent_id: null,
+  } as AgentEvent)
+
+  const START = {
+    id: 'a0', run_id: 'r1', ts: 0, type: 'node.started', node_id: 's1', agent: 'placement',
+    payload: { task: 'Check eligibility' }, latency_ms: null, parent_id: null,
+  } as AgentEvent
+
+  it('sums prompt/completion/total across calls', () => {
+    const state = reduceAll([
+      mk('t1', { provider: 'groq', model: 'openai/gpt-oss-120b', prompt_tokens: 100, completion_tokens: 20, total_tokens: 120, estimated: false }, 's1', 'planner'),
+      mk('t2', { provider: 'groq', model: 'openai/gpt-oss-120b', prompt_tokens: 50, completion_tokens: 30, total_tokens: 80, estimated: true }, null, 'synthesizer'),
+    ])
+    expect(state.telemetry.tokens.calls).toBe(2)
+    expect(state.telemetry.tokens.estimated).toBe(1)
+    expect(state.telemetry.tokens.prompt).toBe(150)
+    expect(state.telemetry.tokens.completion).toBe(50)
+    expect(state.telemetry.tokens.total).toBe(200)
+  })
+
+  it('attributes step-level calls to the node that made them', () => {
+    const state = reduceAll([
+      START,
+      mk('t1', { provider: 'groq', model: 'm', prompt_tokens: 100, completion_tokens: 20, total_tokens: 120, estimated: false }, 's1', 'planner'),
+      mk('t2', { provider: 'groq', model: 'm', prompt_tokens: 10, completion_tokens: 2, total_tokens: 12, estimated: false }, 's1', 'planner'),
+      mk('t3', { provider: 'groq', model: 'm', prompt_tokens: 40, completion_tokens: 8, total_tokens: 48, estimated: false }, null, 'synthesizer'),
+    ])
+    expect(state.steps.s1.llmCalls).toBe(2)
+    expect(state.steps.s1.llmPrompt).toBe(110)
+    expect(state.steps.s1.llmCompletion).toBe(22)
+    // the node-less (synthesizer) call lands only in run totals
+    expect(state.telemetry.tokens.prompt).toBe(150)
+  })
+})
