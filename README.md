@@ -214,6 +214,24 @@ Brings up a `backend` container on port 8000 and a `frontend` container on port 
 
 See [API.md](API.md) for the complete API reference.
 
+## Documentation
+
+| File | Contents |
+|------|----------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Full technical architecture — graph pipeline, memory, RAG, resilience |
+| [API.md](API.md) | HTTP + SSE reference for all backend endpoints |
+| [docs/BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md) | Frontend integration contract — event payloads, approval flow, gotchas |
+| [SETUP.md](SETUP.md) | Complete setup guide and environment variable reference |
+| [RUN.md](RUN.md) | Running the project locally, step by step |
+| [DATABASE.md](DATABASE.md) | Schema, seed data, and data lifecycle |
+| [TESTING.md](TESTING.md) | Test suite, fixtures, CI execution |
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Codebase map and workflows for extending backend/frontend |
+| [AI.md](AI.md) | LLM router, prompts, RAG, and deterministic behavior internals |
+| [SECURITY.md](SECURITY.md) | Security posture and known weaknesses |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment options overview and production considerations |
+| [VERCEL.md](VERCEL.md) / [RENDER.md](RENDER.md) | Per-platform deployment guides |
+| [CHANGELOG.md](CHANGELOG.md) | Notable changes over time |
+
 ## Example Usage
 
 **Ask about placement eligibility:**
