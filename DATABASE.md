@@ -17,12 +17,12 @@ Complete database documentation for the VasaviHub Smart Campus system.
 ```mermaid
 graph LR
     subgraph "campus.db"
-        Tools[Tool Functions] -->|raw SQL via sqlite3| CampusDB[(campus.db)]
-        Seed[seed.py] -->|creates| CampusDB
+        Tools[Tool Functions] -->|raw SQL via SQLAlchemy| CampusDB[(campus.db)]
+        Seed[seed.py] -->|sqlite3| CampusDB
     end
 
     subgraph "memory.db"
-        Profile[memory/profile.py] -->|sqlite3| MemDB[(memory.db)]
+        Profile[memory/profile.py] -->|aiosqlite/sqlite3| MemDB[(memory.db)]
     end
 
     subgraph "checkpoints.db"
@@ -35,7 +35,7 @@ graph LR
     end
 ```
 
-**Note:** The campus database uses raw `sqlite3` (not SQLAlchemy ORM). The memory database uses raw `sqlite3`. The checkpoint database uses LangGraph's `AsyncSqliteSaver`.
+**Note:** The campus database is accessed through a SQLAlchemy `Engine` (`apps/api/tools/db.py`) with hand-written, parameterized `text(...)` statements — SQLAlchemy is used for connection management, not as an ORM. `seed.py` rebuilds the file with plain `stdlib` `sqlite3` for simplicity. The memory database uses direct SQLite access. The checkpoint database uses LangGraph's `AsyncSqliteSaver`.
 
 ## Campus Database Schema
 
@@ -53,7 +53,7 @@ graph LR
 | `attendance` | Attendance records | `student_id` FK, `course_id` FK, `classes_held`, `classes_attended` |
 | `timetable` | Weekly schedule | `course_id` FK, `branch`, `year`, `day_of_week`, `start_time`, `end_time`, `session_type` |
 | `exams` | Exam schedule | `course_id` FK, `exam_type`, `date`, `start_time` |
-| `companies` | Placement companies | `id`, `name`, `role`, `min_cgpa`, `max_backlogs`, `eligible_branches` |
+| `companies` | Placement companies | `id`, `name`, `role`, `min_cgpa`, `max_backlogs`, `eligible_branches`, `application_deadline` |
 | `applications` | Placement applications | `student_id` FK, `company_id` FK, `status` |
 | `events` | Campus events | `id`, `title`, `day_of_week`, `date`, `start_time`, `end_time`, `total_seats`, `seats_taken`, `category` |
 | `event_registrations` | Event sign-ups | `event_id` FK, `student_id` FK, UNIQUE(event_id, student_id) |
@@ -218,12 +218,16 @@ No explicit indexes beyond primary keys and the UNIQUE constraint on `event_regi
 
 ### Tool Functions
 
-All tool functions in `apps/api/tools/` access the database directly via `sqlite3`:
+All tool functions in `apps/api/tools/` run parameterized raw SQL through a shared SQLAlchemy engine:
 
 ```python
 # apps/api/tools/db.py
 from sqlalchemy import create_engine
-engine = create_engine("sqlite:///data/campus.db")
+from sqlalchemy.orm import sessionmaker
+
+DB_PATH = Path(__file__).resolve().parents[3] / "data" / "campus.db"
+engine = create_engine(f"sqlite:///{DB_PATH}", future=True)
+Session = sessionmaker(bind=engine, future=True)
 ```
 
 ### Memory Profile

@@ -25,7 +25,7 @@ graph TB
         API[FastAPI<br/>POST /chat, GET /stream]
         Bus[EventBus<br/>asyncio.Queue pub/sub]
         Graph[LangGraph StateGraph]
-        LLM[LLM Router<br/>Groq→Gemini→Ollama→Anthropic→OpenAI]
+        LLM[LLM Router<br/>Groq→Ollama→Gemini→Anthropic→OpenAI]
         Tools[24 Campus Tools<br/>5 Domains]
         Memory[3-Tier Memory<br/>Working/Profile/Semantic]
         RAG[RAG Pipeline<br/>ChromaDB + SentenceTransformers]
@@ -39,7 +39,7 @@ graph TB
     end
 
     subgraph "External LLM Providers"
-        Groq[Groq<br/>llama-3.3-70b]
+        Groq[Groq<br/>gpt-oss-120b]
         Gemini[Gemini<br/>flash-latest]
         Ollama[Ollama<br/>qwen2.5:7b]
         Anthropic[Anthropic<br/>claude-opus-4-8]
@@ -233,15 +233,14 @@ sequenceDiagram
 
 | Priority | Provider | Model | Notes |
 |----------|----------|-------|-------|
-| 1 | Groq | `llama-3.3-70b-versatile` | Primary — fast, free tier, supports multiple API keys |
-| 2 | Ollama | `qwen2.5:7b` (local) | No quota, no network dependency |
+| 1 | Groq | `openai/gpt-oss-120b` (default, configurable via `GROQ_MODEL`) | Primary — fast, free tier, supports multiple API keys |
+| 2 | Ollama | `qwen2.5:7b` (local `ollama serve` first, else cloud `gpt-oss:20b-cloud`) | No quota, no network dependency |
 | 3 | Gemini | `gemini-flash-latest` | Fallback — free tier has low daily quota |
 | 4 | Anthropic | `claude-opus-4-8` | Optional paid fallback |
 | 5 | OpenAI | `gpt-4o-mini` | Optional paid fallback |
 
 **Key behaviors:**
-- `MOCK_LLM=1` — deterministic, zero-network responses for testing
-- Provider timeout: 25s per provider, 20s per whole call chain
+- Provider timeout: 25s per provider (`LLM_TIMEOUT_S`), 50s deadline for the whole call chain (`LLM_CALL_TIMEOUT_S`)
 - Groq key rotation — multiple keys supported (`GROQ_API_KEY`, `GROQ_API_KEY_2`, ...), rotated on rate limit
 - Client caching — TLS connections reused across calls
 - IPv4 forced by default (IPv6 DNS resolution measured at 21s per connect)
@@ -308,14 +307,15 @@ graph LR
 
 ### RAG Pipeline
 
-`apps/api/rag/store.py`:
-1. **Ingest:** Chunk policy documents (800-char chunks, 150-char overlap) → embed with `all-MiniLM-L6-v2` → store in ChromaDB
-2. **Retrieve:** Embed query → cosine similarity search → return top-k chunks with clause metadata
-3. **Citations:** Each chunk carries `doc_title`, `doc_number`, `clause`, `page`, `score`
+Two layers in `apps/api/rag/`:
+
+1. **Clause-aware policy ingestion** (`rag/ingest_docs.py`): parses `data/docs/*.md` into numbered clauses (with heading/section/page metadata), then embeds with `all-MiniLM-L6-v2` into the ChromaDB `agentx_policies` collection. Run: `python -m apps.api.rag.ingest_docs`
+2. **Generic store** (`rag/store.py`): fallback ingestion of arbitrary files (`.pdf`, `.csv`, text) as 800-char chunks with 150-char overlap into `agentx_docs`; retrieval embeds the query, searches squared-L2 distance in Chroma and converts similarity as `1 - distance/2`
+3. **Retrieval tool** (`tools/knowledge.py`): `search_policy(query, k=4)` returns `PolicySearchResult` with `doc_title`, `doc_number`, `clause`, `page`, `score`; results below the 0.35 relevance threshold trigger an explicit abstention instead of a fabricated answer
 
 ## Database Architecture
 
-SQLite database `data/campus.db` with 18 tables:
+SQLite database `data/campus.db` with 19 tables:
 
 ```mermaid
 erDiagram
@@ -407,7 +407,7 @@ The system uses only SQLite for data. There are no connections to real ERP syste
 ## Configuration Management
 
 - **`.env`** file for API keys (loaded by `python-dotenv` in `llm/router.py`)
-- **Environment variables** for runtime configuration (`MOCK_LLM`, `OLLAMA_DISABLE`, `ALLOW_IPV6`, timeouts)
+- **Environment variables** for runtime configuration (`OLLAMA_DISABLE`, `ALLOW_IPV6`, `LLM_TIMEOUT_S`, `LLM_CALL_TIMEOUT_S`, `GROQ_MODEL`, deadlines)
 - **Hardcoded constants** for most configuration (agent names, tool registry, model names, timeouts)
 - No centralized config file or settings class
 
@@ -429,6 +429,6 @@ See [SECURITY.md](SECURITY.md) for the full security analysis.
 3. **No run cancellation** — abandoned graphs complete in the background
 4. **`tool.retry` / `tool.fallback` node attribution** — may carry wrong `node_id` in parallel execution
 5. **IPv6 forced off** — network-specific workaround, not a protocol decision
-6. **No deployment infrastructure** — no Docker, CI/CD, or production configuration
-7. **Hardcoded student ID** — frontend uses `1602-24-735-066` (V. Abhiram) as the only user
-8. **Mock LLM fragility** — mock dispatches on substring matching in system prompts; prompt rewording breaks mocks
+6. **Hardcoded student ID** — frontend uses `1602-24-735-066` (V. Abhiram) as the only user
+7. **Deterministic planning is prompt-shaped** — the planner's deterministic fallbacks branch on keyword matching in the user goal; reworded demo prompts can miss them
+8. **Unpinned Python dependencies** — `requirements.txt` has no version pins

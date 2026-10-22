@@ -38,7 +38,7 @@ College students navigate fragmented systems — separate portals for attendance
 |-------|-----------|
 | **Backend framework** | FastAPI (Python) |
 | **Agent orchestration** | LangGraph (StateGraph with SQLite checkpointer) |
-| **LLM providers** | Groq (primary), Gemini, Ollama (local/cloud), Anthropic, OpenAI — automatic fallback chain |
+| **LLM providers** | Groq (primary, default model `openai/gpt-oss-120b`), Ollama (local `qwen2.5:7b`, then cloud `gpt-oss:20b-cloud`), Gemini, Anthropic, OpenAI — automatic fallback chain |
 | **Embeddings** | SentenceTransformers (`all-MiniLM-L6-v2`) |
 | **Vector database** | ChromaDB |
 | **Structured database** | SQLite (via SQLAlchemy) |
@@ -58,18 +58,22 @@ POST /chat → intake → planner → dispatch → [5 agents in parallel] → co
 GET /stream/{run_id} ← SSE stream of AgentEvents ← EventBus ←──────────────────────────────────────────────────────────────────┘
 ```
 
+The graph fans ready steps out via LangGraph `Send` and folds results back through a single `dispatch` node; conflict detection can loop back to the planner to revise the plan (bounded at 2 replans).
+
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical architecture.
 
 ## Project Structure
 
 ```
-vasavihub-main/
+VCEHub/
 ├── apps/
 │   ├── api/                    # FastAPI backend
-│   │   ├── main.py             # Entrypoint: POST /chat, GET /stream, POST /approve
+│   │   ├── main.py             # Entrypoint: POST /chat, GET /stream, POST /approve, /inbox, /calendar
 │   │   ├── bus.py              # EventBus — per-run pub/sub for AgentEvents
+│   │   ├── calendar.py         # Read-only inbox projection builder
+│   │   ├── inbox.py            # Read-only notification feed builder
 │   │   ├── graph/              # LangGraph pipeline
-│   │   │   ├── build.py        # StateGraph wiring
+│   │   │   ├── build.py        # StateGraph wiring + SQLite checkpointer session
 │   │   │   ├── state.py        # GraphState TypedDict
 │   │   │   ├── nodes.py        # All non-agent graph nodes
 │   │   │   └── agents.py       # Specialist agent nodes (tool selection via LLM)
@@ -89,14 +93,19 @@ vasavihub-main/
 ├── scripts/
 │   ├── seed.py                 # Deterministic campus database seeder
 │   ├── record_fixtures.py      # Golden JSONL fixture recorder
+│   ├── record_capability_fixture.py # Full tool-coverage fixture recorder
+│   ├── clean_memory.py         # Memory store cleanup utility
 │   └── reset_demo.sh           # Wipes and re-seeds all demo state
 ├── data/
-│   ├── schema.sql              # SQLite schema (18 tables)
-│   └── *.md                    # 5 institutional policy documents (RAG corpus)
-├── fixtures/                   # Golden JSONL event traces for replay
-├── tests/                      # 20 pytest test files
+│   ├── schema.sql              # SQLite schema (19 tables)
+│   └── docs/                   # 5 institutional policy documents (RAG corpus)
+├── fixtures/                   # 225 recorded JSONL event traces (5 golden demo runs)
+├── tests/                      # 15 pytest test files + conftest + cross-process session scripts
 ├── engine.py                   # Legacy standalone backend (pre-multi-agent)
 ├── requirements.txt            # Python dependencies
+├── Dockerfile / docker-compose.yml
+├── render.yaml / vercel.json   # Render + Vercel deployment configs
+├── .github/workflows/ci.yml    # Backend pytest + frontend lint/build/test CI
 └── .env.example                # API key template
 ```
 
@@ -111,7 +120,7 @@ vasavihub-main/
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd vasavihub-main
+cd VCEHub
 
 # Install Python dependencies
 pip install -r requirements.txt
@@ -128,12 +137,11 @@ cp .env.example .env
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GROQ_API_KEY` | Recommended | Groq API key (fastest, free tier) |
+| `GROQ_API_KEY` | Recommended | Groq API key (fastest, free tier). Additional keys via `GROQ_API_KEY_2`, `GROQ_API_KEY_3`, ... for rate-limit rotation |
 | `GEMINI_API_KEY` | No | Google Gemini API key (fallback) |
 | `OLLAMA_API_KEY` | No | Ollama Cloud API key |
 | `ANTHROPIC_API_KEY` | No | Anthropic API key (paid fallback) |
 | `OPENAI_API_KEY` | No | OpenAI API key (paid fallback) |
-| `MOCK_LLM` | No | Set `1` for zero-network deterministic testing |
 | `OLLAMA_DISABLE` | No | Set `1` to skip Ollama entirely |
 
 See [SETUP.md](SETUP.md) for the full list of environment variables.
@@ -153,11 +161,19 @@ cd apps/web && npm run dev
 
 Open `http://localhost:5173` in your browser.
 
-## Running with Mock LLM (No API Keys Needed)
+## Running Without API Keys
+
+You can run the backend entirely on a local Ollama model — no API keys needed:
 
 ```bash
-MOCK_LLM=1 uvicorn apps.api.main:app --reload --port 8000
+# Install Ollama (https://ollama.com), then pull the local model
+ollama pull qwen2.5:7b
+
+# Start the backend with only Ollama enabled
+uvicorn apps.api.main:app --reload --port 8000
 ```
+
+With no API keys set and `OLLAMA_DISABLE` unset, the router falls through to local Ollama automatically. Note that the planner also has deterministic fallback paths for common read-only and conflict scenarios, so much of the graph runs without an LLM at all.
 
 ## Testing
 
@@ -171,7 +187,16 @@ cd apps/web && npm test
 
 ## Docker
 
-Not present in the repository. See [DEPLOYMENT.md](DEPLOYMENT.md).
+The repository ships container configuration for both apps:
+
+- **`Dockerfile`** (repo root) — Python 3.11-slim backend; installs requirements, seeds the campus database at build time, and runs `uvicorn apps.api.main:app --host 0.0.0.0 --port 8000`
+- **`apps/web/Dockerfile`** — two-stage build (Node 20 build step → Nginx serving the static bundle, with `/chat`, `/stream`, etc. proxied to `http://backend:8000`)
+
+```bash
+docker compose up --build
+```
+
+Brings up a `backend` container on port 8000 and a `frontend` container on port 80, with named volumes persisting `data/` and `chroma_db/`. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## API Overview
 
@@ -210,7 +235,8 @@ The system will:
 - **No cancellation endpoint** — abandoned runs complete in the background
 - **`tool.retry` / `tool.fallback` node attribution** — may carry the wrong `node_id` in parallel execution
 - **IPv6 workaround** — outbound connections forced to IPv4 due to measured DNS resolution timeouts on the development network
-- **No deployment configuration** — no Docker, CI/CD, or production deployment setup present
+- **Single demo user** — the frontend hardcodes student `1602-24-735-066`
+- **`requirements.txt` is unpinned** — production deploys should pin transitive versions
 
 ## License
 

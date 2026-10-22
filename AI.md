@@ -16,9 +16,9 @@ VasaviHub uses AI to:
 
 | Model | Provider | Purpose | Configurable |
 |-------|----------|---------|-------------|
-| `llama-3.3-70b-versatile` | Groq | Primary LLM for all graph nodes | Yes (`GROQ_MODEL`) |
+| `openai/gpt-oss-120b` | Groq | Primary LLM for all graph nodes | Yes (`GROQ_MODEL`) |
 | `gemini-flash-latest` | Google | LLM fallback | Hardcoded |
-| `qwen2.5:7b` | Ollama (local) | LLM fallback | Yes (`OLLAMA_LOCAL_MODEL`) |
+| `qwen2.5:7b` | Ollama (local) | LLM fallback (tried before cloud) | Yes (`OLLAMA_LOCAL_MODEL`) |
 | `gpt-oss:20b-cloud` | Ollama (cloud) | LLM fallback | Yes (`OLLAMA_CLOUD_MODEL`) |
 | `claude-opus-4-8` | Anthropic | LLM fallback | Hardcoded |
 | `gpt-4o-mini` | OpenAI | LLM fallback | Hardcoded |
@@ -30,9 +30,8 @@ VasaviHub uses AI to:
 
 ```mermaid
 graph TD
-    A[call_llm] -->|MOCK_LLM=1| B[_mock_llm]
-    A -->|MOCK_LLM unset| C{Provider Chain}
-    C -->|1| D[Groq<br/>llama-3.3-70b]
+    A[call_llm] --> C{Provider Chain<br/>built from configured keys}
+    C -->|1| D[Groq<br/>gpt-oss-120b]
     D -->|rate limited / error| E{Next Provider}
     E -->|2| F[Ollama Local<br/>qwen2.5:7b]
     F -->|not reachable| G{Ollama Cloud?}
@@ -47,12 +46,13 @@ graph TD
 ```
 
 **Key behaviors:**
-- Provider timeout: 25s per provider (`PROVIDER_TIMEOUT_S`)
-- Whole-call deadline: 20s (`LLM_CALL_TIMEOUT_S`)
-- Groq key rotation: multiple keys tried in sequence on rate limit
+- Provider timeout: 25s per provider (`LLM_TIMEOUT_S`), 50s deadline for the whole call chain (`LLM_CALL_TIMEOUT_S`)
+- Local Ollama deliberately outranks Gemini: measured Gemini latency ~180s vs Ollama ~13-60s, and a mid-demo Groq rate limit needs the faster recovery
+- Groq key rotation: multiple keys tried in sequence on rate limit (`GROQ_API_KEY`, `GROQ_API_KEY_2`, ...), exhausted keys are skipped
 - Client caching: TLS connections reused across calls
 - IPv4 forced by default (IPv6 DNS resolution measured at 21s)
 - `max_retries=0` on all SDK clients — retry strategy is key rotation, not backoff
+- Successful provider calls emit a `token.usage` event on the run's SSE stream (real usage where reported, chars/4 estimate flagged `"estimated": true` otherwise)
 
 ## Prompt Architecture
 
@@ -201,23 +201,22 @@ Composes the final answer from all step results, the action ledger, and retrieve
 }
 ```
 
-## Mock LLM
+## Deterministic Behavior (No Mock LLM)
 
-**Location:** `apps/api/llm/router.py` — `_mock_llm()`
+There is **no mock LLM implementation** in `apps/api/llm/router.py` anymore. Deterministic, low-cost behavior comes from code paths that avoid the LLM entirely:
 
-When `MOCK_LLM=1`, the mock LLM dispatches on distinctive substrings in the system prompt:
+| Mechanism | Location | Behavior |
+|-----------|----------|----------|
+| Deterministic planner | `nodes.py` — `planner_node()` | Keyword-based direct plans for register+workshop goals, read-only asks (attendance, electives, timetable, library, clubs, events, prep, eligibility), and schedule revisions around a `SCHEDULE_COLLISION` |
+| Conversational short-circuit | `nodes.py` — `planner_node()` | Greetings/capability/thanks produce empty step lists and go straight to `synthesize` without any agents running |
+| Knowledge agent bypass | `agents.py` | Calls `search_policy(step.task)` directly — no tool-selection LLM call; abstains explicitly when the RAG threshold (0.35) says "no relevant context" |
+| Conflict preflight | `nodes.py` — `conflict_check_node()` | Deterministic timetable-overlap + attendance-impact checks prove/resolve conflicts before the LLM arbiter is consulted |
+| Critic skip | `nodes.py` — `critic_node()` | Skips the LLM when approvals are pending, all steps are ok, the turn budget is exhausted, or the rejection-replan budget is spent |
+| Single-read synthesis | `nodes.py` — `synthesize_node()` | Deterministic composition (no LLM) when one read-only step answered the question |
 
-| Substring | Behavior |
-|-----------|----------|
-| `"orchestrator planner"` | Returns predefined plan based on goal content |
-| `"extract durable facts"` | Returns hardcoded student facts |
-| `"Summarize this exchange"` | Returns hardcoded summary |
-| `"conflict arbiter"` | Returns conflicts only if `MOCK_CONFLICT=1` |
-| `"critic for a multi-agent"` | Always returns satisfied |
-| `"final answer for a multi-agent"` | Composes answer from synthesis payload |
-| `"at most one tool"` | Returns tool selection based on agent name |
+The `MOCK_LLM` environment variable is still set by several test/recording scripts for compatibility, but **no application code reads it**.
 
-**Fragility warning:** The mock dispatches on substring matching. Changing prompt wording breaks mock behavior. The mock is for testing dispatch/event-sequence mechanics, not prompt correctness.
+**Note:** The deterministic planner branches on keywords in the user goal — rewording the demo prompts can bypass them and force an LLM call.
 
 ## RAG Pipeline
 
@@ -225,20 +224,22 @@ When `MOCK_LLM=1`, the mock LLM dispatches on distinctive substrings in the syst
 
 **File:** `apps/api/rag/ingest_docs.py`
 
-1. Read markdown policy documents from `data/`
-2. Parse clause boundaries (numbered sections like "4.2", "4.5")
-3. Chunk into 800-char segments with 150-char overlap
-4. Embed with `all-MiniLM-L6-v2`
-5. Store in ChromaDB collection `campus_policies`
+1. Read markdown policy documents from `data/docs/`
+2. Parse clause boundaries (numbered sections like "4.2", "4.5", plus `## ` headings)
+3. Embed with `all-MiniLM-L6-v2`
+4. Store in ChromaDB collection `agentx_policies` with metadata `{doc_title, doc_number, filename, clause, section, page}` (page is estimated at 500 words each)
+
+Run it with `python -m apps.api.rag.ingest_docs`. A separate generic store (`rag/store.py`) ingests arbitrary `.pdf`/`.csv`/text as 800-char chunks with 150-char overlap into the `agentx_docs` collection.
 
 ### Retrieval
 
-**File:** `apps/api/rag/store.py`
+**File:** `apps/api/tools/knowledge.py` (backed by `rag/store.py`)
 
 1. Embed the query with `all-MiniLM-L6-v2`
-2. Cosine similarity search against `campus_policies` collection
-3. Return top-k chunks with metadata: `doc_title`, `doc_number`, `clause`, `page`, `score`
-4. Agent composes answer, marking citations with `[doc:N]` markers
+2. Search `agentx_policies` in ChromaDB (squared-L2 distance converted to similarity as `1 - distance/2`); fall back to `agentx_docs` if the policy collection is empty
+3. Return top-k (default 4) chunks with metadata: `doc_title`, `doc_number`, `clause`, `page`, `score`
+4. Results below the `NO_CONTEXT_THRESHOLD` (0.35) abstain instead of fabricating an answer
+5. Agent composes answers with `[doc:N]` citation markers; the synthesizer strips markers not backed by real citations
 
 ### Policy Documents
 
@@ -265,9 +266,9 @@ When `MOCK_LLM=1`, the mock LLM dispatches on distinctive substrings in the syst
 ### Agent Execution Model
 
 1. Each agent is invoked as a LangGraph node
-2. The agent's LLM selects exactly one tool from its registry
-3. The tool is executed (with resilience wrapping)
-4. The agent composes a step result from the tool output
+2. The agent's LLM selects exactly one tool from its registry — except the Knowledge Agent, which skips tool selection entirely and calls `search_policy(step.task)` directly (saves one LLM round-trip per knowledge step)
+3. The tool is executed (with resilience wrapping) in `asyncio.to_thread`; role checks, required-arg validation, and duplicate-write dedupe run before execution
+4. The agent composes a step result from the tool output, constrained by `GROUNDING_RULES` so numbers not present in tool output cannot be stated
 5. The result is stored in `GraphState.step_results[step_id]`
 
 ### Parallel Execution
@@ -306,13 +307,11 @@ graph TD
 | `GEMINI_API_KEY` | — | Gemini fallback key |
 | `GROQ_API_KEY_2`, etc. | — | Additional Groq keys for rotation |
 | `OLLAMA_API_KEY` | — | Ollama Cloud key |
-| `OLLAMA_DISABLE` | `0` | Skip Ollama entirely |
-| `MOCK_LLM` | `0` | Deterministic mock responses |
-| `MOCK_CONFLICT` | `0` | Mock conflict injection |
-| `ALLOW_IPV6` | `0` | Enable IPv6 |
+| `OLLAMA_DISABLE` | unset | Skip Ollama entirely |
+| `ALLOW_IPV6` | unset | Enable IPv6 |
 | `LLM_TIMEOUT_S` | `25` | Per-provider timeout |
-| `LLM_CALL_TIMEOUT_S` | `20` | Whole-call timeout |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model |
+| `LLM_CALL_TIMEOUT_S` | `50` | Whole-call timeout |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Groq model |
 | `OLLAMA_LOCAL_MODEL` | `qwen2.5:7b` | Local Ollama model |
 | `OLLAMA_CLOUD_MODEL` | `gpt-oss:20b-cloud` | Cloud Ollama model |
 
@@ -339,12 +338,12 @@ graph TD
 
 1. **No fine-tuning** — all models are used as-is from providers
 2. **No embeddings fine-tuning** — `all-MiniLM-L6-v2` is a general-purpose model
-3. **No RAG reranking** — simple cosine similarity retrieval
+3. **No RAG reranking** — simple distance-based retrieval with an abstention threshold
 4. **No streaming** — LLM calls are synchronous (wrapped in `asyncio.to_thread`)
-5. **No token counting** — no budget enforcement on prompt length
-6. **Mock fragility** — mock dispatches on substring matching, breaks on prompt changes
-7. **Single-tool-per-step constraint** — agents cannot combine multiple tool calls
-8. **No agent-to-agent communication** — agents are isolated; coordination happens only through the planner/dispatcher
+5. **No prompt budget enforcement** — token usage is measured and emitted as `token.usage` events, but prompt length is not capped
+6. **Single-tool-per-step constraint** — agents cannot combine multiple tool calls
+7. **No agent-to-agent communication** — agents are isolated; coordination happens only through the planner/dispatcher
+8. **Deterministic planning is keyword-based** — the planner's no-LLM fallback paths match on goal keywords; unusual phrasings force an LLM call
 
 ## Cost/Performance Considerations
 

@@ -121,10 +121,13 @@ Every event has all nine keys, always present:
 | `conflict.resolved` | `conflict_arbiter` | No conflicts found (fires on every clean pass) |
 | `approval.requested` | `approval_gate` | Run blocked, awaiting human decision |
 | `approval.resolved` | `approval_gate` | Human decision processed |
+| `token.usage` | — | Real or estimated token usage for a completed LLM provider call (`"estimated": true` when the provider doesn't report usage) |
 | `memory.recall` | `intake` | Memory loaded at start |
 | `memory.write` | `memory` | Facts + summary written after answer |
 | `run.finished` | `synthesizer` | Final answer + action ledger |
 | `run.error` | — | Usually a warning (degradation notice), not fatal |
+
+The `EventType` enum also defines `run.started`, `a2a.message`, and `proactive.alert` — reserved for future use; no node emits them today.
 
 **History replay:** Connecting late is safe — the server replays everything already emitted, then continues live. Deduplicate on `event.id`.
 
