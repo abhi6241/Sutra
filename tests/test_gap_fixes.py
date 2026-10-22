@@ -112,3 +112,36 @@ def test_edited_args_recheck_catches_full_event():
         events.register_event(f"filler-full-{i}", "evt_ai_ml_3", actor="filler", approved=True)
     with pytest.raises(SeatsUnavailable):
         events.register_event(ABHIRAM, "evt_ai_ml_3", approved=False)
+
+
+# --- Deterministic planner must not swallow multi-intent goals ---------------
+
+def test_multi_intent_goal_escapes_the_deterministic_read_plan():
+    """"Summarise the exam regulations, compute my attendance eligibility, and
+    draft a makeup-exam email" used to hit the attendance keyword branch first
+    and silently drop the other two asks. The deterministic planner documents
+    itself as 'one unambiguous lookup' — a goal spanning several domains must
+    return None so the LLM planner decomposes it into parallel agent steps."""
+    from apps.api.graph.nodes import _deterministic_read_plan
+
+    goal = ("Summarise the examination regulations, calculate my attendance "
+            "eligibility, and draft an email requesting permission for a makeup exam.")
+    assert _deterministic_read_plan({"goal": goal, "student_id": ABHIRAM}) is None
+
+
+def test_single_intent_goals_still_get_their_deterministic_plan():
+    """The multi-domain guard must not wash out the mission-gallery fast paths."""
+    from apps.api.graph.nodes import _deterministic_read_plan
+
+    cases = [
+        ("What is the minimum attendance percentage required to sit for exams?",
+         {"academic", "knowledge"}),
+        ("Do I meet the eligibility criteria for the Google internship?",
+         {"placement"}),
+        ("What books do I currently have on loan from the library?", None),
+    ]
+    for goal, expected_agents in cases:
+        plan = _deterministic_read_plan({"goal": goal, "student_id": ABHIRAM})
+        assert plan is not None, goal
+        if expected_agents is not None:
+            assert {s.agent for s in plan.steps} == expected_agents

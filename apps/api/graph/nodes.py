@@ -308,6 +308,29 @@ def _deterministic_read_plan(state: dict) -> Plan | None:
     student_id = state.get("student_id", "")
     spec: tuple[str, str, str, dict] | None = None
 
+    # Every branch below assumes the goal asks for exactly ONE lookup. If the
+    # student bundled several asks into one sentence — "Summarise the
+    # examination regulations, calculate my attendance eligibility, and draft
+    # an email requesting permission for a makeup exam" — the first keyword
+    # match used to win and the remaining asks silently vanished from the
+    # answer. Two or more distinct domains in the goal means it must be
+    # decomposed by the LLM planner, whose steps fan out to the agents.
+    _DOMAIN_MARKERS = {
+        "policy": ("regulation", "summar", "policy", "clause", "sop"),
+        "comms": ("email", "draft", "mail"),
+        "attendance": ("attendance", "short on", "qualify to sit"),
+        "events": ("workshop", "event", "club", "register", "enrol", "enroll", "hackathon"),
+        "placement": ("placement", "internship", "interview", "resume", "company", "eligib"),
+        "library": ("library", "loan"),
+        "hostel": ("hostel",),
+    }
+    _domains = {
+        name for name, words in _DOMAIN_MARKERS.items()
+        if any(word in lower for word in words)
+    }
+    if len(_domains) > 1:
+        return None
+
     if "attendance" in lower and any(word in lower for word in ("exam", "sit", "required", "short", "minimum")):
         return Plan(
             goal=goal,
