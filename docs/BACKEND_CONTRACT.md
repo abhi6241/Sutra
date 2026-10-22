@@ -478,7 +478,7 @@ been found and the plan revised to a safe alternative. There is never an
 
 ## 8. Testing without the backend
 
-Four recorded runs are committed in `fixtures/` (and copied to
+Five recorded runs are committed in `fixtures/` (and copied to
 `apps/web/public/fixtures/`). They're plain JSONL — one event per line, byte
 identical to what the SSE stream sends — so you can build the entire UI with no
 backend and no LLM quota.
@@ -489,6 +489,7 @@ backend and no LLM quota.
 | `golden_conflict.jsonl` | Academic Agent veto → replan → Saturday batch |
 | `golden_chaos.jsonl` | retry ×2 → fallback → degraded, still answers |
 | `golden_reject.jsonl` | human rejects; system carries on |
+| `golden_capabilities.jsonl` | full capability tour — every registered tool demonstrated |
 
 Regenerate any time, free and deterministic:
 ```bash
@@ -499,4 +500,4 @@ Run the backend for real:
 ```bash
 uvicorn apps.api.main:app --port 8000
 ```
-Add `MOCK_LLM=1` to run the graph with zero network calls and zero quota.
+With no API keys set and `OLLAMA_DISABLE` unset, the router runs entirely on local Ollama (`ollama pull qwen2.5:7b`) — no network providers, no quota.

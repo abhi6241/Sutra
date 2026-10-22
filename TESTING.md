@@ -25,6 +25,7 @@ Documentation of the existing testing strategy.
 | `test_resilience.py` | 106 | Chaos/retry/fallback, circuit breaker, domain refusal passthrough |
 | `test_truthful_synthesis.py` | 293 | Final answer must not claim things that didn't happen |
 | `test_conversational.py` | 165 | Greetings, capability questions, multi-turn state isolation |
+| `test_router.py` | — | LLM router behavior without network: Groq key rotation, client caching, JSON-mode prompt guard |
 | `test_calendar.py` | 51 | Calendar projection from timetable + approved events + reminders |
 | `test_hero_conflict.py` | 162 | Hero demo conflict from real timetable data |
 | `test_gap_fixes.py` | 114 | Atomic seat claim, role-scoped permissions, edited-approval validation |
@@ -214,8 +215,8 @@ npx vitest
 ### Smoke Tests (Manual)
 
 ```bash
-python smoke_test.py          # LLM + RAG basics
-python smoke_test_mock.py     # Graph mechanics with mock LLM
+python smoke_test.py          # LLM + RAG basics (needs a working provider)
+python smoke_test_mock.py     # Graph mechanics without network
 python smoke_test_bus.py      # EventBus pub/sub
 python smoke_test_hero.py     # Hero demo scenario
 python smoke_test_graph.py    # Real graph execution
@@ -239,7 +240,12 @@ python e2e_check.py           # Full HTTP/SSE layer
 
 ## CI Test Execution
 
-**Not configured.** No GitHub Actions, GitLab CI, or other CI/CD pipeline exists in the repository.
+Configured at `.github/workflows/ci.yml`. On every push / PR to `main` it runs two jobs:
+
+- **Backend (Python 3.11)** — `pip install -r requirements.txt` then `pytest --tb=short -q`. `GROQ_API_KEY` is injected from the `GROQ_API_KEY` repo secret.
+- **Frontend (Node 20)** — `npm ci`, then `npm run lint` (oxlint), `npm run typecheck`, `npm test` (Vitest), and `npm run build` (Vite).
+
+A workflow-level concurrency group cancels in-progress runs for the same ref.
 
 ## Test Data Management
 
