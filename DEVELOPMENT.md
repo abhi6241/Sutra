@@ -188,7 +188,8 @@ Vitest runs: `i18n.test.ts`, `store.test.ts`, `runReducer.test.ts`, `pacing.test
 
 - Provider chain order is defined in `call_llm()` in `apps/api/llm/router.py` — providers are appended to a list in priority order: Groq (if key), Ollama (unless `OLLAMA_DISABLE`), Gemini (if key), Anthropic (if key), OpenAI (if key)
 - Each provider has its own `_call_*` function
-- Determinism without an LLM comes from the planner's deterministic fallback paths (register+workshop goals, read-only keyword goals, schedule revisions) and the knowledge agent's direct `search_policy` call — not from a mock LLM
+- `MOCK_LLM=1` (test-only) short-circuits the chain to `_mock_llm()`, a substring-keyed deterministic stand-in — see [AI.md](AI.md); the server never sets it
+- The planner's deterministic fallback paths (register+workshop goals, read-only keyword goals, schedule revisions) and the knowledge agent's direct `search_policy` call also let common goals complete without an LLM
 - Token usage is measured per provider call and fanned out as `token.usage` events (chars/4 estimate flagged `"estimated": true` when a provider doesn't report usage)
 
 ## Testing Conventions
@@ -196,8 +197,8 @@ Vitest runs: `i18n.test.ts`, `store.test.ts`, `runReducer.test.ts`, `pacing.test
 - **Test isolation:** `conftest.py` re-seeds `campus.db` before each test module
 - **Deterministic data:** Seed script uses `random.seed(42)` for reproducible data
 - **Fixtures:** Golden JSONL files in `fixtures/` for regression testing
-- **Deterministic tests:** several tests set `MOCK_LLM=1` in the environment, but no application code reads it anymore — determinism actually comes from the planner's deterministic fallback paths and the knowledge agent's direct RAG call
-- **No external dependencies:** Tests use only SQLite, no real LLM calls
+- **Deterministic tests:** most test modules set `MOCK_LLM=1`; the router short-circuits to its substring-keyed `_mock_llm()` (see [AI.md](AI.md)), so the suite runs in ~15s with zero network and no quota
+- **No external dependencies:** Tests use only SQLite and the deterministic mock, no real LLM calls
 
 ## Build/Lint/Format Commands
 

@@ -201,20 +201,22 @@ Composes the final answer from all step results, the action ledger, and retrieve
 }
 ```
 
-## Deterministic Behavior (No Mock LLM)
+## Deterministic behavior: the test-only mock
 
-There is **no mock LLM implementation** in `apps/api/llm/router.py` anymore. Deterministic, low-cost behavior comes from code paths that avoid the LLM entirely:
+`MOCK_LLM=1` restores a **deterministic, zero-network stand-in** for the graph's known call sites (`apps/api/llm/router.py` — `_mock_llm()`). It dispatches on distinctive substrings in each node's system prompt and feeds the graph the same events the real providers would, without any LLM call.
 
-| Mechanism | Location | Behavior |
-|-----------|----------|----------|
-| Deterministic planner | `nodes.py` — `planner_node()` | Keyword-based direct plans for register+workshop goals, read-only asks (attendance, electives, timetable, library, clubs, events, prep, eligibility), and schedule revisions around a `SCHEDULE_COLLISION` |
-| Conversational short-circuit | `nodes.py` — `planner_node()` | Greetings/capability/thanks produce empty step lists and go straight to `synthesize` without any agents running |
-| Knowledge agent bypass | `agents.py` | Calls `search_policy(step.task)` directly — no tool-selection LLM call; abstains explicitly when the RAG threshold (0.35) says "no relevant context" |
-| Conflict preflight | `nodes.py` — `conflict_check_node()` | Deterministic timetable-overlap + attendance-impact checks prove/resolve conflicts before the LLM arbiter is consulted |
-| Critic skip | `nodes.py` — `critic_node()` | Skips the LLM when approvals are pending, all steps are ok, the turn budget is exhausted, or the rejection-replan budget is spent |
-| Single-read synthesis | `nodes.py` — `synthesize_node()` | Deterministic composition (no LLM) when one read-only step answered the question |
+**Where it is used:** the pytest suite (most modules `os.environ.setdefault("MOCK_LLM", "1")`), the fixture recorders (`scripts/record_fixtures.py`, `scripts/record_capability_fixture.py`), and the mock smoke test. **The server never sets it** — a production `uvicorn` run always uses the real provider chain.
 
-The `MOCK_LLM` environment variable is still set by several test/recording scripts for compatibility, but **no application code reads it**.
+| Marker in system prompt | Mock behavior |
+|------------------------|---------------|
+| `"orchestrator planner"` | Replans to the Saturday batch on a revision marker; capability/greeting replies; otherwise a read-only plan that honours the company named in the goal (Google default) |
+| `"conflict arbiter"` | Returns no conflicts (the deterministic preflight does the conflict work) |
+| `"critic for a multi-agent"` | Always satisfied |
+| `"final answer for a multi-agent"` | Composes the answer only from the synthesis payload it was handed — it cannot claim actions that did not happen |
+| `"at most one tool"` | Tool selection keyed off the step's own `Task:` line (event batch, placement company, reminder vs calendar) |
+| `"extract durable facts"` / `"Summarize this exchange"` | Fixed profile facts and summary |
+
+**Fragility warning:** the mock dispatches on substring matching — rewording a system prompt breaks that branch. It verifies dispatch/event-sequence mechanics, not prompt quality.
 
 **Note:** The deterministic planner branches on keywords in the user goal — rewording the demo prompts can bypass them and force an LLM call.
 

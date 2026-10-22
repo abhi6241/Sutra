@@ -500,4 +500,4 @@ Run the backend for real:
 ```bash
 uvicorn apps.api.main:app --port 8000
 ```
-With no API keys set and `OLLAMA_DISABLE` unset, the router runs entirely on local Ollama (`ollama pull qwen2.5:7b`) — no network providers, no quota.
+For zero-network deterministic contract testing, `MOCK_LLM=1` short-circuits the router to its substring-keyed mock — same wire events, no providers. The server itself never sets that variable.

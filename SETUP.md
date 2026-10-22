@@ -283,4 +283,6 @@ python scripts/record_fixtures.py
 python scripts/record_capability_fixture.py
 ```
 
-Produces deterministic JSONL files in `fixtures/` and copies them to `apps/web/public/fixtures/`.
+Produces deterministic JSONL files in `fixtures/`. The frontend replay mode
+reads `apps/web/public/fixtures/` — copy any changed golden files there
+manually (the recorder does not sync them).
