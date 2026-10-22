@@ -21,23 +21,22 @@ vercel --prod
 
 Vercel auto-detects the `vercel.json` at the repo root. Set the **Root Directory** to `apps/web` in the Vercel dashboard if it doesn't auto-detect.
 
-### Option 2: Deploy from apps/web
+### Option 2: Deploy the Whole Monorepo (recommended)
 
 ```bash
-cd apps/web
 vercel --prod
 ```
 
-Uses `apps/web/vercel.json`.
+from the repo root. The only Vercel config file is the root `vercel.json`; it builds `apps/web` via `npm install --prefix apps/web && npm run build --prefix apps/web` and serves `apps/web/dist`. There is **no** `apps/web/vercel.json`, so deploying with the dashboard's Root Directory pointed at `apps/web` will fall back to auto-detection instead of this config.
 
 ### Vercel Dashboard Settings
 
 | Setting | Value |
 |---------|-------|
-| Framework Preset | Vite |
-| Root Directory | `apps/web` |
-| Build Command | `npm run build` |
-| Output Directory | `dist` |
+| Framework Preset | Vite (or "Other" — the root `vercel.json` decides the build) |
+| Root Directory | repo root (leave empty) |
+| Build Command | from `vercel.json` (`cd ../.. && npm install --prefix apps/web && npm run build --prefix apps/web`) |
+| Output Directory | `apps/web/dist` |
 | Install Command | `npm install` |
 
 ## Environment Variables
@@ -46,9 +45,9 @@ Set these in the Vercel dashboard under **Settings → Environment Variables**:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_API_URL` | No | Backend URL (e.g., `https://your-backend.up.railway.app`) |
+| `VITE_API_URL` | No | Backend URL baked in as the `__API_URL__` build constant (`apps/web/vite.config.ts`) |
 
-If `VITE_API_URL` is not set, API calls go to the same origin (Vercel rewrites proxy to the backend).
+Note: the frontend's fetch layer (`apps/web/src/transport/sseClient.ts`) currently uses **relative URLs** — `VITE_API_URL` is not consumed at runtime, and the rewrites below handle routing to the backend. In local dev, `vite.config.ts` also proxies the same paths to `http://localhost:8000`.
 
 ## API Proxying
 
@@ -112,7 +111,7 @@ ssh user@your-server
 
 # Clone and setup
 git clone <repo-url>
-cd vasavihub-main
+cd VCEHub
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -125,29 +124,18 @@ gunicorn apps.api.main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
 
 ## CORS Configuration
 
-After deploying the backend, update `apps/api/main.py` to allow your Vercel frontend domain:
+Set the `VASAVIHUB_CORS_ORIGINS` environment variable on the backend — the app reads it at startup (`apps/api/main.py`) and defaults to `http://localhost:5173`:
 
-```python
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://your-project.vercel.app",  # Add this
-    ],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 ```
-
-Or set the `VASAVIHUB_CORS_ORIGINS` environment variable (if you add support for it).
+VASAVIHUB_CORS_ORIGINS=https://your-project.vercel.app,http://localhost:5173
+```
 
 ## Connecting Frontend to Backend
 
 1. Deploy the backend to Railway/Fly.io/VPS
 2. Note the backend URL (e.g., `https://your-app.up.railway.app`)
-3. In Vercel dashboard, set `VITE_API_URL` to the backend URL
-4. Update backend CORS to allow the Vercel domain
-5. Redeploy both services
+3. Set `VASAVIHUB_CORS_ORIGINS` on the backend to include the Vercel frontend domain
+4. Redeploy both services (the frontend needs no code change — all API calls use relative URLs and the rewrites do the routing)
 
 ## Local Development (No Vercel)
 
@@ -172,7 +160,5 @@ npm run dev  # Proxies to localhost:8000
 
 | File | Purpose |
 |------|---------|
-| `vercel.json` | Root Vercel config (monorepo) |
-| `apps/web/vercel.json` | Standalone frontend Vercel config |
+| `vercel.json` | Root Vercel config (monorepo — builds `apps/web`, API rewrites) |
 | `.vercelignore` | Exclude backend/tests/scripts from Vercel build |
-| `apps/web/vite.config.ts` | Updated with `VITE_API_URL` support |

@@ -71,15 +71,17 @@ Each tool function validates its own arguments via Pydantic return models (`apps
 ### CORS
 
 ```python
+# apps/api/main.py
+_cors_origins = os.environ.get("VASAVIHUB_CORS_ORIGINS", "http://localhost:5173")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[o.strip() for o in _cors_origins.split(",")],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 ```
 
-**Restriction:** Only `http://localhost:5173` is allowed. This is appropriate for development but would need to be updated for production deployment.
+**Restriction:** Only origins in `VASAVIHUB_CORS_ORIGINS` are allowed (default `http://localhost:5173`). Set it explicitly for production, ideally excluding `http://localhost:5173`.
 
 **Weakness:** `allow_methods=["*"]` and `allow_headers=["*"]` are overly permissive for a production system.
 

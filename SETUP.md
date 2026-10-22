@@ -22,7 +22,7 @@ Step-by-step instructions for setting up the VasaviHub development environment.
 
 ```bash
 git clone <repo-url>
-cd vasavihub-main
+cd VCEHub
 ```
 
 ### 2. Install Python Dependencies
@@ -88,22 +88,23 @@ Edit `.env` with your API keys.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MOCK_LLM` | `0` | Set `1` for zero-network deterministic testing |
-| `OLLAMA_DISABLE` | `0` | Set `1` to skip Ollama entirely |
-| `ALLOW_IPV6` | `0` | Set `1` to enable IPv6 connections |
+| `OLLAMA_DISABLE` | unset | Set `1` to skip Ollama entirely |
+| `ALLOW_IPV6` | unset | Set `1` to enable IPv6 connections |
 | `LLM_TIMEOUT_S` | `25` | Per-provider HTTP timeout in seconds |
-| `LLM_CALL_TIMEOUT_S` | `20` | Whole-call deadline (all providers combined) |
+| `LLM_CALL_TIMEOUT_S` | `50` | Whole-call deadline (all providers combined) |
 | `GRAPH_LEG_TIMEOUT_S` | `60` | Outer deadline for one graph leg (initial run or resume) |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model to use |
+| `TURN_BUDGET_S` | `45` | Per-turn wall-clock budget used by planner/critic decisions |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Groq model to use |
 | `OLLAMA_LOCAL_MODEL` | `qwen2.5:7b` | Local Ollama model |
 | `OLLAMA_CLOUD_MODEL` | `gpt-oss:20b-cloud` | Ollama Cloud model |
+| `VASAVIHUB_CORS_ORIGINS` | `http://localhost:5173` | Comma-separated CORS allow-list for the backend |
 
 ### Optional (LLM Models)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GEMINI_MODEL` | `gemini-flash-latest` | Hardcoded in `llm/router.py` |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Configurable |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Configurable |
 | `OLLAMA_LOCAL_MODEL` | `qwen2.5:7b` | Configurable |
 | `OLLAMA_CLOUD_MODEL` | `gpt-oss:20b-cloud` | Configurable |
 | `ANTHROPIC_MODEL` | `claude-opus-4-8` | Hardcoded |
@@ -119,11 +120,12 @@ python scripts/seed.py
 
 This creates `data/campus.db` with:
 - 40 students (including 2 demo personas)
-- 8 courses
+- 15 courses
 - 8 companies (Google, Goldman Sachs, Microsoft, TCS, Infosys, Amazon, Deloitte, Bosch)
-- 12 events (workshops, hackathons, club meets)
+- 12 events (workshops, hackathon, club meets, career fair)
 - 8 clubs
 - V. Abhiram's timetable, attendance, and library loans
+- 1 scholarship row
 
 **The seed is deterministic** — every run wipes and rebuilds the database.
 
@@ -163,21 +165,18 @@ npm run dev
 
 The frontend starts on `http://localhost:5173`. Vite proxies API requests to `localhost:8000`.
 
-### Running with Mock LLM
+### Running on Local Ollama (No API Keys)
 
 ```bash
-MOCK_LLM=1 uvicorn apps.api.main:app --reload --port 8000
+# 1. Install Ollama — https://ollama.com
+# 2. Pull the model the router expects locally
+ollama pull qwen2.5:7b
+
+# 3. Start the backend without any API keys
+uvicorn apps.api.main:app --reload --port 8000
 ```
 
-Zero network calls, deterministic responses, no LLM quota spent. Useful for testing graph mechanics and frontend development.
-
-### Running with Ollama Only
-
-```bash
-GROQ_API_KEY= GEMINI_API_KEY= uvicorn apps.api.main:app --reload --port 8000
-```
-
-Blank out Groq and Gemini keys to force Ollama as the only provider.
+With unset API keys and `OLLAMA_DISABLE` unset, the router falls through to local Ollama. The planner also has deterministic keyword-based fallbacks for common read-only and conflict scenarios, so many goals plan correctly even while Ollama is cold-loading.
 
 ## Running Tests
 
@@ -187,7 +186,7 @@ Blank out Groq and Gemini keys to force Ollama as the only provider.
 pytest
 ```
 
-Runs all 20 test files in `tests/`. Uses `asyncio_mode = auto`.
+Runs all 15 test files in `tests/` (plus the `conftest.py` re-seed fixture). Uses `asyncio_mode = auto`.
 
 **Important:** Tests auto-seed `data/campus.db` before each module via the `conftest.py` fixture. The seed script is run automatically.
 
@@ -203,10 +202,10 @@ Runs Vitest tests: `i18n.test.ts`, `store.test.ts`, `runReducer.test.ts`, `pacin
 ### Smoke Tests
 
 ```bash
-# Full system smoke test (needs MOCK_LLM=1 or real API keys)
+# LLM + RAG sanity checks (needs a working LLM provider)
 python smoke_test.py
 
-# Graph mechanics with mock LLM
+# Graph mechanics with deterministic/no-network setup
 python smoke_test_mock.py
 
 # EventBus pub/sub
@@ -234,7 +233,7 @@ Verifies the full HTTP/SSE layer: POST /chat → GET /stream → approval → co
 
 ### "No LLM provider available"
 
-At least one API key must be set, or `OLLAMA_DISABLE` must not be set. For testing, use `MOCK_LLM=1`.
+Raised when every API key is unset **and** `OLLAMA_DISABLE=1`. Set at least one key, or leave Ollama enabled with the local model installed.
 
 ### Port 8000 already in use
 

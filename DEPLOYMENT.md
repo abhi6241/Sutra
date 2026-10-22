@@ -31,6 +31,8 @@ Frontend on port 80, backend on port 8000. See [docker-compose.yml](docker-compo
 
 ## Vercel Configuration Files
 
+Configured at the repo root: `vercel.json` (builds `apps/web`, outputs to `apps/web/dist`, and rewrites API paths to the backend) and `.vercelignore` (keeps backend/tests/scripts out of the static build). See [VERCEL.md](VERCEL.md).
+
 ## Build Process
 
 ### Backend
@@ -62,17 +64,22 @@ Bundles the cockpit into a single self-contained HTML file for embedding in othe
 
 ## Production Configuration
 
-### Not Present
+### What Exists
 
-The following are absent from the repository:
-- `Dockerfile` / `docker-compose.yml`
-- `.github/workflows/` or any CI/CD configuration
-- `nginx.conf` or reverse proxy configuration
-- `Makefile` or deployment scripts
-- `systemd` service files
-- Kubernetes manifests
-- Terraform/infrastructure-as-code
-- Environment-specific configuration files
+- **`Dockerfile`** (root) — Python 3.11-slim backend image; installs `gcc g++`, requirements, copies the repo, seeds the campus DB at build time, exposes 8000
+- **`docker-compose.yml`** — `backend` (port 8000, `.env` loaded, `GRAPH_LEG_TIMEOUT_S=60`, named volumes `campus-data:/app/data` and `chroma-data:/app/chroma_db`, healthcheck hitting `/health`) + `frontend` (built from `apps/web/Dockerfile`, port 80, `depends_on: backend healthy`)
+- **`apps/web/Dockerfile`** — two-stage Node 20 build → Nginx serving the SPA with API routes proxied to `http://backend:8000` (including SSE-specific `/stream` settings)
+- **`apps/web/nginx.conf`** — reverse-proxy config for the containerized frontend
+- **`render.yaml` + `render-startup.sh`** — Render Blueprint (backend web service + 1 GB persistent disk). See [RENDER.md](RENDER.md)
+- **`vercel.json` + `.vercelignore`** — static frontend deploys on Vercel with API rewrites. See [VERCEL.md](VERCEL.md)
+- **`.github/workflows/ci.yml`** — CI on push/PR to `main`: backend pytest job + frontend lint/typecheck/test/build job
+
+### Still Not Present
+
+- Reverse proxy with HTTPS termination for the backend itself (Docker uses container-internal Nginx for the frontend only)
+- `Makefile`, systemd service files, Kubernetes manifests, Terraform/IaC
+- Environment-specific (staging/prod) config files
+- Log aggregation, metrics, or alerting
 
 ### What Would Be Needed
 
@@ -82,33 +89,26 @@ For a production deployment, the following would be required:
 2. **Process manager** (systemd, supervisord) for the Uvicorn worker
 3. **Production database** (PostgreSQL recommended over SQLite for concurrency)
 4. **Static file serving** for the built frontend
-5. **CORS configuration** update for production domain
+5. **CORS configuration** update for production domain (`VASAVIHUB_CORS_ORIGINS`)
 6. **Rate limiting** at the proxy or application level
 7. **Logging** aggregation
 8. **Monitoring** and health check integration
 
 ## Docker
 
-**Not present.** No Dockerfile or docker-compose.yml exists.
+Build and run both containers:
 
-A hypothetical Dockerfile would need:
-
-```dockerfile
-# Not from the repository — illustrative only
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-RUN python scripts/seed.py
-CMD ["uvicorn", "apps.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```bash
+docker compose up --build
 ```
+
+Backend on port 8000, frontend (Nginx) on port 80. The backend container seeds the database at build time; the compose volumes persist `data/` and `chroma_db/` across container restarts.
 
 ## Frontend Deployment
 
 The frontend is a standard Vite React app. After `npm run build`, the `dist/` directory contains static files that can be served by any web server.
 
-**CORS note:** The backend currently allows only `http://localhost:5173`. For production, this must be updated to the production frontend URL.
+**Frontend CORS note:** set `VASAVIHUB_CORS_ORIGINS` on the backend to the production frontend origin(s), comma-separated. Default is `http://localhost:5173`.
 
 ## Backend Deployment
 
@@ -155,7 +155,7 @@ bash scripts/reset_demo.sh  # Wipes everything and re-seeds
 | Anthropic API | LLM fallback | Optional (paid) |
 | OpenAI API | LLM fallback | Optional (paid) |
 
-At minimum, one LLM provider must be configured, or `MOCK_LLM=1` must be set.
+At minimum, one LLM provider must be configured (or run local Ollama with `qwen2.5:7b`). Otherwise startup calls raise "No LLM provider available".
 
 ## Health Checks
 
@@ -186,8 +186,9 @@ The `/health` endpoint returns `{"status": "ok"}` when the server is running. It
 | Timeout | Default | Configurable |
 |---------|---------|-------------|
 | Per-provider HTTP | 25s | `LLM_TIMEOUT_S` |
-| Whole LLM call | 20s | `LLM_CALL_TIMEOUT_S` |
+| Whole LLM call | 50s | `LLM_CALL_TIMEOUT_S` |
 | Graph leg | 60s | `GRAPH_LEG_TIMEOUT_S` |
+| Turn budget | 45s | `TURN_BUDGET_S` |
 
 ### IPv6
 
@@ -195,13 +196,11 @@ Forced off by default. Set `ALLOW_IPV6=1` on networks with working IPv6.
 
 ## Deployment Limitations
 
-1. **No containerization** — no Docker or docker-compose
-2. **No CI/CD** — no automated testing or deployment pipeline
-3. **No production database** — SQLite not suitable for concurrent production use
-4. **No reverse proxy** — no HTTPS termination
-5. **No process management** — no systemd, supervisord, or container orchestration
-6. **No logging infrastructure** — no structured logging or log aggregation
-7. **No monitoring** — no metrics, alerting, or observability
-8. **No backup strategy** — no automated database backups
-9. **Single-student UI** — frontend hardcodes student ID `1602-24-735-066`
-10. **No load balancing** — single-process architecture
+1. **SQLite not suitable for concurrent production use**
+2. **No reverse proxy for the backend** — no HTTPS termination (frontend container has Nginx, but talks to the backend over HTTP)
+3. **No process management for bare-metal runs** — no systemd, supervisord, or container orchestration beyond Compose
+4. **No logging infrastructure** — no structured logging or log aggregation
+5. **No monitoring** — no metrics, alerting, or observability
+6. **No backup strategy** — no automated database backups
+7. **Single-student UI** — frontend hardcodes student ID `1602-24-735-066`
+8. **No load balancing** — single-process architecture

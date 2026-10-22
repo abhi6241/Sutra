@@ -13,7 +13,7 @@ Step-by-step guide to get VasaviHub running locally, including virtual environme
 
 ```bash
 git clone <repo-url>
-cd vasavihub-main
+cd VCEHub
 ```
 
 ## 2. Create and Activate a Virtual Environment
@@ -73,7 +73,7 @@ Get a free Groq API key at [console.groq.com](https://console.groq.com).
 python scripts/seed.py
 ```
 
-Creates `data/campus.db` with 40 students, 8 courses, 8 companies, 12 events, and the demo scenario data.
+Creates `data/campus.db` with 40 students, 15 courses, 8 companies, 12 events, 8 clubs, and the demo scenario data.
 
 ## 6. Start the Backend
 
@@ -115,13 +115,17 @@ Navigate to **http://localhost:5173** in your browser.
 
 ## Running Without API Keys
 
-Use the mock LLM for zero-network, deterministic testing:
+You can run the backend fully on a local Ollama model:
 
 ```bash
-MOCK_LLM=1 uvicorn apps.api.main:app --reload --port 8000
+# Install Ollama — https://ollama.com
+ollama pull qwen2.5:7b
+
+# Start the backend with no API keys set
+uvicorn apps.api.main:app --reload --port 8000
 ```
 
-No API keys needed. The graph runs with pre-scripted responses. Good for:
+With unset API keys and `OLLAMA_DISABLE` unset, the router uses local Ollama automatically. Note that the planner also has deterministic keyword-based fallback paths for common read-only and conflict goals, so much of the graph behaves correctly even without an LLM. Good for:
 - Trying the UI
 - Frontend development
 - Running tests
@@ -183,7 +187,7 @@ This deletes and re-seeds all databases, clears ChromaDB, and removes generated 
 | Start frontend | `cd apps/web && npm run dev` |
 | Run backend tests | `pytest` |
 | Run frontend tests | `cd apps/web && npm test` |
-| Mock mode | `MOCK_LLM=1 uvicorn apps.api.main:app --reload --port 8000` |
+| Ollama-only mode | `uvicorn apps.api.main:app --reload --port 8000` (keys unset) |
 | Full reset | `bash scripts/reset_demo.sh` |
 | Health check | `curl http://localhost:8000/health` |
 
@@ -191,7 +195,7 @@ This deletes and re-seeds all databases, clears ChromaDB, and removes generated 
 
 ### "No LLM provider available"
 
-At least one API key must be set, or use `MOCK_LLM=1` for testing.
+Raised when every API key is unset and `OLLAMA_DISABLE=1`. Set at least one key, or install Ollama with the local model and leave `OLLAMA_DISABLE` unset.
 
 ### Port 8000 already in use
 

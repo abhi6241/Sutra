@@ -30,11 +30,13 @@ In the Render dashboard, go to **Environment** and add:
 | Variable | Required | Value |
 |----------|----------|-------|
 | `GROQ_API_KEY` | Yes | Your Groq API key |
-| `VASAVIHUB_CORS_ORIGINS` | Yes | `https://your-frontend.vercel.app,http://localhost:5173` |
+| `VASAVIHUB_CORS_ORIGINS` | Yes | `https://your-frontend.vercel.app,http://localhost:5173` (pre-set in `render.yaml` to the localhost default — override for your frontend) |
 | `GEMINI_API_KEY` | No | Gemini fallback key |
 | `ANTHROPIC_API_KEY` | No | Anthropic fallback key |
 | `OPENAI_API_KEY` | No | OpenAI fallback key |
-| `OLLAMA_DISABLE` | Yes | `1` (Ollama not available on Render) |
+| `OLLAMA_DISABLE` | — | Already set to `1` in `render.yaml` (Ollama not available on Render) |
+
+`render.yaml` also presets `GRAPH_LEG_TIMEOUT_S=60` and `PYTHON_VERSION=3.11`, so those need no entry.
 
 ### 4. Verify
 
@@ -138,8 +140,10 @@ Or simply **restart the service** — the startup script re-seeds if `campus.db`
 ```bash
 # Backend on Render, frontend locally
 cd apps/web
-VITE_API_URL=https://your-app.onrender.com npm run dev
+npm run dev
 ```
+
+Note: all API calls use relative URLs, and the Vite dev proxy targets `http://localhost:8000` by default. To develop the frontend against a remote backend, change the proxy `target` in `apps/web/vite.config.ts` to your Render URL.
 
 ## Files Created
 
