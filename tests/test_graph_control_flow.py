@@ -87,8 +87,12 @@ async def test_rejection_increments_its_own_counter_on_first_replan():
     async def fake_call(*_a, **_kw):
         return {"satisfied": False, "feedback": "try another way"}
 
-    original = n.asyncio.to_thread
-    n.asyncio.to_thread = lambda fn, *a, **kw: fake_call()
+    # Patch the imported critic dependency directly. Do NOT patch
+    # `n.asyncio.to_thread` — n.asyncio IS the global asyncio module, so that
+    # patch would also hijack call_llm_async's internal to_thread and corrupt
+    # its (result, usage) unpacking in unrelated ways.
+    original = n.call_llm_async
+    n.call_llm_async = fake_call
     try:
         state = {
             "run_id": "test-reject-inc",
@@ -102,7 +106,7 @@ async def test_rejection_increments_its_own_counter_on_first_replan():
         assert result["critic_feedback"] == "try another way"
         assert result["rejection_replans"] == 1
     finally:
-        n.asyncio.to_thread = original
+        n.call_llm_async = original
 
 
 # --- Reset-capable reducers (a replan must genuinely discard prior state) ---

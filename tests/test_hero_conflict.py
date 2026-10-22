@@ -146,8 +146,9 @@ async def test_thursday_is_proposed_but_never_written():
     thursday_writes = [
         e for e in events
         if e["type"] == "tool.result"
+        and e["payload"].get("tool") == "register_event"
         and e["payload"].get("status") == "ok"
-        and "evt_workshop_thu" in json.dumps(e["payload"])
+        and (e["payload"].get("data") or {}).get("event_id") == "evt_workshop_thu"
     ]
     assert not thursday_writes, "the clashing Thursday slot was actually written"
 

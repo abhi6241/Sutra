@@ -19,6 +19,11 @@ def clean_router_state(monkeypatch):
     for name in list(os.environ):
         if name.startswith("GROQ_API_KEY"):
             monkeypatch.delenv(name, raising=False)
+    # Earlier modules setdefault("MOCK_LLM","1") — that env var leaks
+    # process-wide and would make call_llm short-circuit to the deterministic
+    # mock instead of exercising the real provider machinery under test.
+    # These tests patch router internals directly and need it OFF.
+    monkeypatch.delenv("MOCK_LLM", raising=False)
     yield
     router._clients.clear()
     router._exhausted_groq_keys.clear()

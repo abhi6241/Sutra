@@ -27,7 +27,11 @@ def clean_chaos_state():
 
 def test_healthy_service_passes_through():
     fn = TOOL_REGISTRY["check_placement_eligibility"]["fn"]
-    result = fn(student_id=ABHIRAM, company_id="google")
+    # Microsoft, not Google: the seed restricts Google to CSE/IT and the demo
+    # persona is ECE, so Google would legitimately return False — that is a
+    # data answer, not a pass-through property. Microsoft is genuinely
+    # eligible for the persona, so True proves the healthy path is untouched.
+    result = fn(student_id=ABHIRAM, company_id="microsoft")
     assert result.is_eligible is True
     assert resilience.drain_events() == []  # no retries needed
 
