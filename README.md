@@ -230,7 +230,6 @@ See [API.md](API.md) for the complete API reference.
 | [SECURITY.md](SECURITY.md) | Security posture and known weaknesses |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment options overview and production considerations |
 | [VERCEL.md](VERCEL.md) / [RENDER.md](RENDER.md) | Per-platform deployment guides |
-| [CHANGELOG.md](CHANGELOG.md) | Notable changes over time |
 
 ## Example Usage
 
